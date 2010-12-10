@@ -1,0 +1,39 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+		<title><%= content_for?(:title) ? yield(:title) : "Snorby #{Snorby::VERSION}" %></title>
+		
+		<meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Snorby - All About Simplicity" />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+
+    <%= stylesheet_link_tag "/jqtouch/jqtouch.min.css", "/jqtouch/themes/jqt/theme.min.css" %>
+    
+		<%= javascript_include_tag "/jqtouch/jquery.1.3.2.min.js", "/jqtouch/jqtouch.min.js", 'mobile' %>
+    
+		<%= yield(:head) %>
+  </head>
+  <body>
+    <div class="current">
+			
+			<div class="toolbar">
+
+        <%= link_to "Back", nil, :class => "back" unless current_page? root_path %>
+
+        <h1><%=h yield(:page_title) %></h1>
+				
+				<% if user_signed_in? %>
+					<%= link_to "Logout", logout_path, :class => 'button', :rel => 'external' %>
+				<% else %>
+					<%= link_to "Login", login_path, :class => 'button', :rel => 'external' %>
+				<% end %>
+				
+        <%= yield(:toolbar) %>
+      </div>
+    
+      <%= yield %>
+    </div>
+  </body>
+</html>

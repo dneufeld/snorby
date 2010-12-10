@@ -5,7 +5,7 @@ class ApplicationController < ActionController::Base
   protect_from_forgery
 
   before_filter :authenticate_user!
-  before_filter :user_setup
+  before_filter :user_setup, :mobile_setup
 
   protected
 
@@ -29,5 +29,14 @@ class ApplicationController < ActionController::Base
       #   Time.timezone = current_user.timezone
       # end
     end
+    
+    def mobile_setup
+      request.format = :mobile if mobile?
+    end
+    
+    def mobile?
+      request.user_agent =~ /Mobile|webOS/
+    end
+    helper_method :mobile?
 
 end

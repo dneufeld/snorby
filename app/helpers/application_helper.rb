@@ -1,5 +1,11 @@
 module ApplicationHelper
 
+  def page_title(title='Snorby')
+    content_for :page_title do 
+      "<h1>#{title}</h1>".html_safe
+    end
+  end
+  
   def dropdown_select_tag(collection, value, include_blank=false, custom=[])
     options = include_blank ? "<option value=''></option>" : ""
     custom.collect { |x| options += x }
