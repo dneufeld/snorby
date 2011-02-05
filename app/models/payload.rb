@@ -1,20 +1,14 @@
 require 'snorby/payload'
 
 class Payload
-  
-  include DataMapper::Resource
 
-  storage_names[:default] = "data"
+  set_table_name "data"
   
-  property :sid, Integer, :key => true, :index => true
-  
-  property :cid, Integer, :key => true, :index => true
-  
-  property :data_payload, Text
+  belongs_to :sensor, :foreign_key => [:sid]  
+  belongs_to :event, :foreign_key => [:sid, :cid]
 
-  belongs_to :sensor, :parent_key => [ :sid ], :child_key => [ :sid ], :required => true
-  
-  belongs_to :event, :parent_key => [ :sid, :cid ], :child_key => [ :sid, :cid ], :required => true
+  validates_presence_of :sensor
+  validates_presence_of :event
 
   def to_s
     Snorby::Payload.new([data_payload].pack('H*'), :width => 26).to_s
