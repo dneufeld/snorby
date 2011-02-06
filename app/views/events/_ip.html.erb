@@ -19,8 +19,8 @@
 		</tr>
 		<tbody>
 			<tr>
-				<td style='width:150px;' class='first'><a href='/events/lookup?address=<%= @event.ip.ip_src %>' data-address='<%= @event.ip.ip_src %>' class='ip-button snorbybox'><%= @event.ip.ip_src %></a></td>
-				<td style='width:150px;'><a href='/events/lookup?address=<%= @event.ip.ip_dst %>' data-address='<%= @event.ip.ip_dst %>' class='ip-button snorbybox'><%= @event.ip.ip_dst %></a></td>
+				<td style='width:150px;' class='first'><a href='/events/lookup?address=<%= @event.ip.src %>' data-address='<%= @event.ip.src %>' class='ip-button snorbybox'><%= @event.ip.src %></a></td>
+				<td style='width:150px;'><a href='/events/lookup?address=<%= @event.ip.dst %>' data-address='<%= @event.ip.dst %>' class='ip-button snorbybox'><%= @event.ip.dst %></a></td>
 				<td><%= @event.ip.ip_ver %></td>
 				<td><%= @event.ip.ip_hlen %></td>
 				<td><%= @event.ip.ip_tos %></td>

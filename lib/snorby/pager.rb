@@ -14,7 +14,7 @@ module Snorby
         unless page == current_page
           tag(:li, link(page, page, :rel => rel_value(page)))
         else
-          tag(:li, page, :class => "page active")
+          tag(:li, page, :class => "active")
         end
       end
 

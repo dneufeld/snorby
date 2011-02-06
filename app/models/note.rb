@@ -2,6 +2,8 @@ class Note < ActiveRecord::Base
 
   belongs_to :user
   
+  set_primary_keys :sid, :cid
+  
   belongs_to :sensor, :foreign_key => [:sid]
   
   belongs_to :event, :foreign_key => [:sid, :cid]

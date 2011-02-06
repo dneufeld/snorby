@@ -5,7 +5,7 @@ class Ip < ActiveRecord::Base
   set_primary_keys :sid, :cid
   
   belongs_to :sensor, :foreign_key => [:sid]
-  belongs_to :event, :dependent => :destroy, :foreign_key => [:sid, :cid]
+  has_many :event, :dependent => :destroy, :foreign_key => [:sid, :cid]
 
   validates_presence_of :sensor
 

@@ -2,7 +2,7 @@ class EventsController < ApplicationController
   respond_to :html, :xml, :json, :js, :csv
 
   def index
-    @events = Event.where(:classification_id => nil).paginate(:page => params[:page], :per_page => @current_user.per_page_count, :order => 'timestamp DESC', :include => [:ip,:signature,:sensor])
+    @events = Event.where(:classification_id => nil).group('signature').paginate(:page => params[:page], :per_page => @current_user.per_page_count, :order => 'timestamp DESC', :include => [:ip,:signature,:sensor])
     @classifications ||= Classification.all
   end
 
@@ -21,8 +21,8 @@ class EventsController < ApplicationController
   end
 
   def show
-    @event = Event.get(params['sid'], params['cid'])
-    @notes = @event.notes.all.page(params[:page].to_i, :per_page => 5, :order => [:id.desc])
+    @event = Event.includes(:ip,:signature,:sensor,:tcp,:udp,:notes,:icmp).find(params['sid'], params['cid'])
+    @notes = @event.notes.all.paginate(:page => params[:page], :per_page => 5, :order => 'id DESC', :include => [:user])
     respond_to do |format|
       format.html {render :layout => false}
       format.js

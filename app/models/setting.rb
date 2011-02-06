@@ -16,19 +16,19 @@ class Setting < ActiveRecord::Base
   end
 
   def self.set(name, value=nil)
-    record = first(:name => name)
+    record = where(:name => name).first
     return Setting.create(:name => name, :value => value) if record.nil?
     record.update(:value => value)
   end
 
-  def self.find(name)
-    record = first(:name => name)
+  def self.get(name)
+    record = where(:name => name).first
     return false if record.nil?
     record.value
   end
 
   def self.has_setting(name)
-    record = first(:name => name)
+    record = where(:name => name).first
     return false if record.nil?
     return true unless record.value.blank?
     false
@@ -50,7 +50,7 @@ class Setting < ActiveRecord::Base
     elsif method.to_s.match(/^(.*)\?$/)
       Setting.has_setting($1.to_sym)
     else
-      return Setting.get(method.to_sym)
+      return Setting.find(method.to_sym)
     end
   end
 

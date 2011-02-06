@@ -17,17 +17,17 @@ class Event < ActiveRecord::Base
 
   has_one :severity, :through => :signature
 
-  has_one :payload, :dependent => :destroy
+  has_one :payload, :dependent => :destroy, :foreign_key => [:sid, :cid]
 
-  has_one :icmp, :dependent => :destroy
+  has_one :icmp, :dependent => :destroy, :foreign_key => [:sid, :cid]
 
-  has_one :tcp, :dependent => :destroy
+  has_one :tcp, :dependent => :destroy, :foreign_key => [:sid, :cid]
 
-  has_one :udp, :dependent => :destroy
+  has_one :udp, :dependent => :destroy, :foreign_key => [:sid, :cid]
 
-  has_one :opt, :dependent => :destroy
+  has_one :opt, :dependent => :destroy, :foreign_key => [:sid, :cid]
 
-  has_many :notes, :dependent => :destroy
+  has_many :notes, :dependent => :destroy, :foreign_key => [:sid, :cid]
 
   belongs_to :user
 
@@ -35,7 +35,7 @@ class Event < ActiveRecord::Base
 
   belongs_to :signature, :class_name => "Signature", :foreign_key => :signature
 
-  has_one :ip, :foreign_key => [:sid, :cid], :dependent => :destroy
+  belongs_to :ip, :foreign_key => [:sid, :cid], :dependent => :destroy
 
   before_destroy do
     self.classification.down(:events_count) if self.classification
@@ -49,7 +49,7 @@ class Event < ActiveRecord::Base
   alias :signature_id :sig_id
 
   def packet_capture(params={})
-    case Setting.find(:packet_capture_type).to_sym
+    case Setting.get(:packet_capture_type).to_sym
     when :openfpc
       Snorby::Plugins::OpenFPC.new(self,params).to_s
     when :solera
@@ -61,7 +61,7 @@ class Event < ActiveRecord::Base
 
   def signature_url
     if Setting.signature_lookup?
-      url = Setting.find(:signature_lookup)
+      url = Setting.get(:signature_lookup)
       return url.sub(/\$\$sid\$\$/, signature.sig_sid.to_s).sub(/\$\$gid\$\$/, signature.sig_gid.to_s)
     else
       url = "http://rootedyour.com/snortsid?sid=$$gid$$-$$sid$$"
@@ -168,7 +168,7 @@ class Event < ActiveRecord::Base
   # @return [Hash] hash of events between range.
   #
   def self.to_json_since(time)
-    events = Event.all(:timestamp.gt => time, :classification_id => nil, :order => [:timestamp.desc])
+    events = Event.where('timestamp > ?', time).where(:classification_id => nil).order('timestamp DESC')
     json = {:events => []}
     events.each do |event|
       json[:events] << {
