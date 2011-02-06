@@ -31,9 +31,9 @@ class Event < ActiveRecord::Base
 
   belongs_to :user
 
-  belongs_to :sensor
+  belongs_to :sensor, :foreign_key => :sid
 
-  belongs_to :signature, :class_name => "Signature", :foreign_key => 'signature'
+  belongs_to :signature, :class_name => "Signature", :foreign_key => :signature
 
   has_one :ip, :foreign_key => [:sid, :cid], :dependent => :destroy
 
@@ -186,7 +186,7 @@ class Event < ActiveRecord::Base
   end
 
   def favorite?
-    return true if User.current_user.events.include?(self)
+    return true if User.current_user.favorites.include?(self)
     false
   end
 

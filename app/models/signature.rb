@@ -6,7 +6,7 @@ class Signature < ActiveRecord::Base
   
   set_table_name 'signature'
   
-  set_primary_key "sig_id"
+  set_primary_key :sig_id
 
   #belongs_to :category, :parent_key => :sig_class_id, :child_key => :sig_class_id, :required => true
 

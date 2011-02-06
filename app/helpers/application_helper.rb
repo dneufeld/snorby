@@ -66,9 +66,9 @@ module ApplicationHelper
   #
   def pager(collection, path, fade_content=true)
     if fade_content
-      %{<div class='pager main'>#{collection.pager.to_html("#{path}", :size => 9)}</div>}.html_safe
+      %{<div class='pager main'>#{will_paginate(collection, :renderer => Snorby::Pager)}</div>}.html_safe
     else
-      %{<div class='pager notes-pager'>#{collection.pager.to_html("#{path}", :size => 9)}</div>}.html_safe
+       %{<div class='pager notes-pager'>#{will_paginate(collection, :renderer => Snorby::Pager)}</div>}.html_safe
     end
   end
 

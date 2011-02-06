@@ -2,14 +2,16 @@ class Sensor < ActiveRecord::Base
 
   set_table_name "sensor"
 
-  has_many :events, :dependent => :destroy, :foreign_key => [:sid]
+  set_primary_key :sid
+
+  has_many :events, :dependent => :destroy, :foreign_key => :sid
 
   has_many :ips, :dependent => :destroy, :foreign_key => [:sid]
   
   has_many :notes, :dependent => :destroy, :foreign_key => [:sid]
 
   def cache
-    Cache.all(:sid => sid)
+    Cache.where(:sid => sid).all
   end
   
   def sensor_name
@@ -18,11 +20,11 @@ class Sensor < ActiveRecord::Base
   end
   
   def daily_cache
-    DailyCache.all(:sid => sid)
+    DailyCache.where(:sid => sid).all
   end
 
   def last
-    return Event.get(sid, last_cid) unless last_cid.blank?
+    return Event.find(sid, last_cid) unless last_cid.blank?
     false
   end
   

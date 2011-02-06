@@ -11,14 +11,14 @@ class Note < ActiveRecord::Base
   
   validates_presence_of :body
 
-  after :create do
+  after_create do
     event = self.event
     user = self.user
     event.update(:notes_count => event.notes_count + 1)
     user.update(:notes_count => user.notes_count + 1)
   end
   
-  before :destroy do
+  before_destroy do
     event = self.event
     user = self.user
     event.update(:notes_count => event.notes_count - 1) if event
