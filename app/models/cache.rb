@@ -1,35 +1,43 @@
-class Cache
+class Cache < ActiveRecord::Base
 
   belongs_to :sensor, :foreign_key => [:sid]
 
   has_one :event, :foreign_key => [:sid, :cid]
 
+  def self.gte(time)
+    where("ran_at >= ?", time)
+  end
+  
+  def self.lte(time)
+    where("ran_at <= ?", time)
+  end
+
   def self.last_month
-    all(:ran_at.gte => (Time.now - 2.months).beginning_of_month, :ran_at.lte => (Time.now - 2.months).end_of_month)
+    gte((Time.now - 2.months).beginning_of_month).lte((Time.now - 2.months).end_of_month)
   end
 
   def self.this_quarter
-    all(:ran_at.gte => Time.now.beginning_of_quarter, :ran_at.lte => Time.now.end_of_quarter)
+    gte(Time.now.beginning_of_quarter).lte(Time.now.end_of_quarter)
   end
 
   def self.this_month
-    all(:ran_at.gte => Time.now.beginning_of_month, :ran_at.lte => Time.now.end_of_month)
+    gte(Time.now.beginning_of_month).lte(Time.now.end_of_month)
   end
 
   def self.last_week
-    all(:ran_at.gte => (Time.now - 1.weeks).beginning_of_week, :ran_at.lte => (Time.now - 1.weeks).end_of_week)
+    gte((Time.now - 1.weeks).beginning_of_week).lte((Time.now - 1.weeks).end_of_week)
   end
 
   def self.this_week
-    all(:ran_at.gte => Time.now.beginning_of_week, :ran_at.lte => Time.now.end_of_week)
+    gte(Time.now.beginning_of_week).lte(Time.now.end_of_week)
   end
 
   def self.yesterday
-    all(:ran_at.gte => Time.now.yesterday.beginning_of_day, :ran_at.lte => Time.now.yesterday.end_of_day)
+    gte(Time.now.yesterday.beginning_of_day).lte(Time.now.yesterday.end_of_day)
   end
 
   def self.today
-    all(:ran_at.gte => Time.now.beginning_of_day, :ran_at.lte => Time.now.end_of_day)
+    gte(Time.now.beginning_of_day).lte(Time.now.end_of_day)
   end
   
   def self.cache_time
@@ -101,15 +109,15 @@ class Cache
   end
 
   def self.get_last
-    first(:order => [:ran_at.desc])
+    order('ran_at DESC').first
   end
 
   def self.sensor_metrics(type=nil)
     @metrics = []
 
-    Sensor.all(:limit => 5, :order => [:events_count.desc]).each do |sensor|
+    Sensor.limit(5).order('events_count DESC').each do |sensor|
       count = Array.new(24) { 0 }
-      blah = self.all(:sid => sensor.sid).group_by { |x| x.ran_at.hour }
+      blah = self.where(:sid => sensor.sid).group_by { |x| x.ran_at.hour }
 
       blah.each do |hour, data|
         count[hour] = data.map(&:event_count).sum
@@ -124,7 +132,7 @@ class Cache
   def self.src_metrics(limit=20)
     @metrics = {}
     @top = []
-    @cache = self.map(&:src_ips).compact
+    @cache = self.all.map(&:src_ips).compact
     count = 0
 
     @cache.each do |ip_hash|
@@ -150,7 +158,7 @@ class Cache
   def self.dst_metrics(limit=20)
     @metrics = {}
     @top = []
-    @cache = self.map(&:dst_ips).compact
+    @cache = self.all.map(&:dst_ips).compact
     count = 0
 
     @cache.each do |ip_hash|
@@ -179,7 +187,7 @@ class Cache
     @cache = self
     count = 0
 
-    @cache.map(&:signature_metrics).each do |data|
+    @cache.all.map(&:signature_metrics).each do |data|
       next unless data
 
       data.each do |id, value|
@@ -205,19 +213,19 @@ class Cache
   def self.cache_for_type(collection, type=:week, sensor=false)
     case type.to_sym
     when :week
-      return collection.group_by { |x| x.ran_at.day } unless sensor
+      return collection.all.group_by { |x| x.ran_at.day } unless sensor
       return collection.all(:sid => sensor.sid).group_by { |x| x.ran_at.day }
     when :month
-      return collection.group_by { |x| x.ran_at.day } unless sensor
+      return collection.all.group_by { |x| x.ran_at.day } unless sensor
       return collection.all(:sid => sensor.sid).group_by { |x| x.ran_at.day }
     when :year
-      return collection.group_by { |x| x.ran_at.month } unless sensor
+      return collection.all.group_by { |x| x.ran_at.month } unless sensor
       return collection.all(:sid => sensor.sid).group_by { |x| x.ran_at.month }
     when :hour
-      return collection.group_by { |x| x.ran_at.hour } unless sensor
+      return collection.all.group_by { |x| x.ran_at.hour } unless sensor
       return collection.all(:sid => sensor.sid).group_by { |x| x.ran_at.hour }
     else
-      return collection.group_by { |x| x.ran_at.day } unless sensor
+      return collection.all.group_by { |x| x.ran_at.day } unless sensor
       return collection.all(:sid => sensor.sid).group_by { |x| x.ran_at.day }
     end
   end

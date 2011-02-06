@@ -29,7 +29,7 @@ module Snorby
   module Jobs
 
     def self.find
-      Delayed::Backend::DataMapper::Job
+      Delayed::Backend::ActiveRecord::Job
     end
 
     def self.run(obj, priority=1, time=Time.now)
@@ -42,19 +42,19 @@ module Snorby
     end
 
     def self.sensor_cache
-      Snorby::Jobs.find.first(:handler.like => "%!ruby/struct:Snorby::Jobs::SensorCacheJob%")
+      Snorby::Jobs.find.where('handler LIKE ?', "%!ruby/struct:Snorby::Jobs::SensorCacheJob%").first
     end
 
     def self.daily_cache
-      Snorby::Jobs.find.first(:handler.like => "%!ruby/struct:Snorby::Jobs::DailyCacheJob%")
+      Snorby::Jobs.find.where('handler LIKE ?', "%!ruby/struct:Snorby::Jobs::DailyCacheJob%").first
     end
 
     def self.sensor_cache?
-      !Snorby::Jobs.find.first(:handler.like => "%!ruby/struct:Snorby::Jobs::SensorCacheJob%").blank?
+      sensor_cache.present?
     end
 
     def self.daily_cache?
-      !Snorby::Jobs.find.first(:handler.like => "%!ruby/struct:Snorby::Jobs::DailyCacheJob%").blank?
+      daily_cache.present?
     end
 
     def self.sensor_caching?

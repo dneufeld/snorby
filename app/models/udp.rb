@@ -1,4 +1,4 @@
-class Udp
+class Udp < ActiveRecord::Base
 
   set_table_name "udphdr"
 

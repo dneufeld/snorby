@@ -1,4 +1,4 @@
-class Setting
+class Setting < ActiveRecord::Base
 
   CHECKBOXES = [
     :daily,

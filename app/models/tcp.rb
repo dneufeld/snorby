@@ -1,4 +1,4 @@
-class Tcp
+class Tcp < ActiveRecord::Base
 
   set_table_name "tcphdr"
   

@@ -1,6 +1,6 @@
 require 'snorby/payload'
 
-class Payload
+class Payload < ActiveRecord::Base
 
   set_table_name "data"
   

@@ -1,6 +1,6 @@
 require 'snorby/model'
 
-class Notification
+class Notification < ActiveRecord::Base
   include Snorby::Model
 
   belongs_to :user

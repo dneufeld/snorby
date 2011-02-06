@@ -1,4 +1,4 @@
-class DailyCache
+class DailyCache < ActiveRecord::Base
   
   belongs_to :sensor, :foreign_key => [:sid]
 

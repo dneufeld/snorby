@@ -1,6 +1,6 @@
 require 'snorby/model/counter'
 
-class Classification
+class Classification < ActiveRecord::Base
 
   include Snorby::Model::Counter
 

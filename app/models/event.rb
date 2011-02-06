@@ -33,9 +33,9 @@ class Event < ActiveRecord::Base
 
   belongs_to :sensor
 
-  belongs_to :sig, :class_name => "Signature", :foreign_key => 'signature'
+  belongs_to :signature, :class_name => "Signature", :foreign_key => 'signature'
 
-  belongs_to :ip, :dependent => :destroy
+  has_one :ip, :foreign_key => [:sid, :cid], :dependent => :destroy
 
   before_destroy do
     self.classification.down(:events_count) if self.classification
@@ -44,8 +44,9 @@ class Event < ActiveRecord::Base
   end
   
   def sig_id
-    signature.to_i
+    signature.sig_id
   end
+  alias :signature_id :sig_id
 
   def packet_capture(params={})
     case Setting.find(:packet_capture_type).to_sym

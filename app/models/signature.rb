@@ -1,14 +1,18 @@
 require 'snorby/model/counter'
 
-class Signature
+class Signature < ActiveRecord::Base
 
   include Snorby::Model::Counter
   
-  set_table_name "signature"
+  set_table_name 'signature'
+  
+  set_primary_key "sig_id"
 
   #belongs_to :category, :parent_key => :sig_class_id, :child_key => :sig_class_id, :required => true
 
-  has_many :events, :dependent => :destroy, :foreign_key => [:sig_id]
+  has_many :events, :foreign_key => :signature, :dependent => :destroy
+  
+  belongs_to :sig_class, :foreign_key => :sig_class_id
   
   has_many :notifications, :foreign_key => [:sig_id]
   

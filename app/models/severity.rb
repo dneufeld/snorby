@@ -1,6 +1,6 @@
 require 'snorby/model'
 
-class Severity
+class Severity < ActiveRecord::Base
   
   include Snorby::Model
 

@@ -1,4 +1,4 @@
-class Icmp
+class Icmp < ActiveRecord::Base
 
   set_table_name "icmphdr"
 
