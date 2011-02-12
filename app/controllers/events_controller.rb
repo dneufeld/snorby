@@ -2,7 +2,7 @@ class EventsController < ApplicationController
   respond_to :html, :xml, :json, :js, :csv
 
   def index
-    @events = Event.where(:classification_id => nil).group('signature').paginate(:page => params[:page], :per_page => @current_user.per_page_count, :order => 'timestamp DESC', :include => [:ip,:signature,:sensor])
+    @events = Event.where(:classification_id => nil).order('timestamp DESC').paginate(:page => params[:page], :per_page => @current_user.per_page_count, :include => [:ip,:signature,:sensor])
     @classifications ||= Classification.all
   end
 

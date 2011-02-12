@@ -12,9 +12,9 @@ module Snorby
       
       def page_number(page)
         unless page == current_page
-          tag(:li, link(page, page, :rel => rel_value(page)))
+          tag(:li, link(page, page), :"data-page-number" => page)
         else
-          tag(:li, page, :class => "active")
+          tag(:li, link(page, page), :class => "active", :"data-page-number" => page)
         end
       end
 
