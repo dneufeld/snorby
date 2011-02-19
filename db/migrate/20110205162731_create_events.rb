@@ -1,8 +1,9 @@
 class CreateEvents < ActiveRecord::Migration
   def self.up
-    create_table(:event) do |t|
-      t.integer :sid
-      t.integer :cid
+    create_table(:event, :id => false, :primary_key => :cid) do |t|
+      t.column :sid, :primary_key, :null => false
+      t.integer :cid, :null => false
+      
       t.integer :sig_id
       t.integer :classification_id, :null => true
       

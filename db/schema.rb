@@ -31,7 +31,7 @@ ActiveRecord::Schema.define(:version => 20110219213703) do
   add_index "caches", ["cid"], :name => "index_caches_on_cid"
   add_index "caches", ["sid"], :name => "index_caches_on_sid"
 
-  create_table "category", :force => true do |t|
+  create_table "category", :id => false, :force => true do |t|
     t.integer  "sig_class_id"
     t.string   "sig_class_name"
     t.datetime "created_at"
@@ -98,9 +98,8 @@ ActiveRecord::Schema.define(:version => 20110219213703) do
     t.text    "encoding_text"
   end
 
-  create_table "event", :force => true do |t|
-    t.integer  "sid"
-    t.integer  "cid"
+  create_table "event", :primary_key => "sid", :force => true do |t|
+    t.integer  "cid",                              :null => false
     t.integer  "sig_id"
     t.integer  "classification_id"
     t.integer  "users_count",       :default => 0
@@ -225,8 +224,7 @@ ActiveRecord::Schema.define(:version => 20110219213703) do
     t.string   "version"
   end
 
-  create_table "sensor", :force => true do |t|
-    t.integer "sid"
+  create_table "sensor", :primary_key => "sid", :force => true do |t|
     t.string  "name"
     t.text    "hostname"
     t.string  "interface"

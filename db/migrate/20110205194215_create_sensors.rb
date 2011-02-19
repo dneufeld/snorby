@@ -1,7 +1,8 @@
 class CreateSensors < ActiveRecord::Migration
   def self.up  
-    create_table(:sensor) do |t|
-      t.integer :sid
+    create_table(:sensor, :id => false) do |t|
+      t.column :sid, :primary_key, :null => false
+      
       t.string :name
       
       t.text :hostname
