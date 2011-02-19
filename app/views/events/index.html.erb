@@ -45,6 +45,15 @@
 
 <%= title "Listing Events <i>(#{@events.total_entries} unclassified events)</i>".html_safe, 'Listing Events' do -%>
 	<%= menu_item "Hotkeys", hotkey_events_path, 'events/keyboard.png', :class => 'snorbybox' %>
+	
+	<%= drop_down_for('View Options', 'icons/filter.png', 'view-options') do %>
+		<%= drop_down_item "List All Events", events_path(:view => :all), nil %>
+		<%= drop_down_item "List Only Unique Events", events_path(:view => :unique), nil %>
+		<%= drop_down_item "List By Unique Signature", events_path(:view => :signature), nil %>
+		<%= drop_down_item "List By Unique Source Address", events_path(:view => :src), nil %>
+		<%= drop_down_item "List By Unique Destination Address", events_path(:view => :dst), nil %>
+	<% end %>
+	
 	<%= render :partial => 'events/menu' %>
 <%- end -%>
 

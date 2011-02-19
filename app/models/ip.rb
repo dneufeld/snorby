@@ -6,9 +6,7 @@ class Ip < ActiveRecord::Base
   
   belongs_to :sensor, :foreign_key => [:sid]
   
-  has_many :event, :dependent => :destroy, :foreign_key => [:sid, :cid]
-
-  validates_presence_of :sensor
+  belongs_to :event, :dependent => :destroy, :foreign_key => [:sid, :cid]
 
   def src
     convert_to_ip_object(ip_src)

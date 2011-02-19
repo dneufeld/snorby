@@ -1,5 +1,5 @@
 module EventsHelper
-  
+
   def event_port_number(event, type)
     if event.tcp?
       return event.tcp.send(:"tcp_#{type.to_s}")
@@ -9,8 +9,7 @@ module EventsHelper
       nil
     end
   end
-  
-  
+
   def protocol(event)
     if event.tcp?
       :tcp
@@ -22,5 +21,5 @@ module EventsHelper
       nil
     end
   end
-  
+
 end

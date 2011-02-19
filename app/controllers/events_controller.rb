@@ -1,13 +1,14 @@
 class EventsController < ApplicationController
   respond_to :html, :xml, :json, :js, :csv
+  helper_method :sort_column, :sort_direction
 
   def index
-    @events = Event.where(:classification_id => nil).order('timestamp DESC').paginate(:page => params[:page], :per_page => @current_user.per_page_count, :include => [:ip,:signature,:sensor])
+    @events = Event.view_format(params).order(sort_column + " " + sort_direction).all.paginate(:page => params[:page], :per_page => User.current_user.per_page_count)
     @classifications ||= Classification.all
   end
 
   def queue
-    @events ||= current_user.events.page(params[:page].to_i, :per_page => @current_user.per_page_count, :order => [:timestamp.desc])
+    @events ||= current_user.events.joins(:ip,:signature).order(sort_column + " " + sort_direction).all.paginate(:page => params[:page], :per_page => User.current_user.per_page_count)
     @classifications ||= Classification.all
   end
 
@@ -68,9 +69,9 @@ class EventsController < ApplicationController
     end
 
     options.merge!({:sig_id => params[:sig_id].to_i}) if params[:use_sig_id]
-    
+
     options.merge!({:"ip.ip_src" => IPAddr.new(params[:ip_src].to_i,Socket::AF_INET)}) if params[:use_ip_src]
-    
+
     options.merge!({:"ip.ip_dst" => IPAddr.new(params[:ip_dst].to_i,Socket::AF_INET)}) if params[:use_ip_dst]
 
     if options.empty?
@@ -159,5 +160,16 @@ class EventsController < ApplicationController
     @event = Event.get(params[:sid], params[:cid])
     render :layout => false
   end
+
+  private
+
+    def sort_column
+      columns = ['sid', 'cid', 'ip_src', 'ip_dst', 'severity', 'signature', 'sig_priority', 'timestamp']
+      columns.include?(params[:sort]) ? params[:sort] : "timestamp"
+    end
+
+    def sort_direction
+      %w[asc desc].include?(params[:direction]) ? params[:direction] : "asc"
+    end
 
 end

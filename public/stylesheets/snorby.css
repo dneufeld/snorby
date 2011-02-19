@@ -1270,7 +1270,7 @@ table{
 	margin-right: 6px;
 }
 
-table th{
+table th,table th a{
 	text-align: left;
 	padding-left: 10px;
 	color: #3f3f3f;
@@ -1359,7 +1359,8 @@ ul.table{
 	padding: 0;
 }
 
-ul.table li.header{
+ul.table li.header,
+ul.table li.header a{
 	text-align: left;
 	color: #3f3f3f;
 	height: 25px;
@@ -1371,6 +1372,10 @@ ul.table li.header{
 	background-color: #ddd;
 	text-shadow: #fff 0 1px 0;
 	font-size: 0.9em;
+}
+
+ul.table li.header a{
+	text-decoration: none; !important	
 }
 
 ul.table li.header div{

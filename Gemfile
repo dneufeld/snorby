@@ -5,7 +5,6 @@ RSPEC_VERSION = '~> 2.0.0'
 
 gem 'rails',                  RAILS_VERSION
 gem 'jquery-rails'
-gem 'bundler',                '~> 1.0.0'
 
 gem 'activesupport',          RAILS_VERSION, :require => 'active_support'
 gem 'actionpack',             RAILS_VERSION, :require => 'action_pack'
@@ -21,7 +20,7 @@ gem 'capistrano'
 
 # Rails Plugins
 gem 'jammit',                 '~> 0.5.4'
-gem 'devise',                 '~> 1.1.3'
+gem 'devise',                 '~> 1.2.rc'
 gem "mail",                   '~> 2.2.10'
 gem "RedCloth",               "~> 4.0", :require => 'redcloth'
 gem 'chronic',                '~> 0.3.0'

@@ -3,7 +3,7 @@ require 'snorby/model/counter'
 class Event < ActiveRecord::Base
   include Snorby::Model::Counter
   set_table_name 'event'
-  
+
   set_primary_keys :sid, :cid
 
   # Included for the truncate helper method.
@@ -35,14 +35,14 @@ class Event < ActiveRecord::Base
 
   belongs_to :signature, :class_name => "Signature", :foreign_key => :signature
 
-  belongs_to :ip, :class_name => 'Ip', :foreign_key => [:sid, :cid], :dependent => :destroy
+  has_one :ip, :class_name => 'Ip', :foreign_key => [:sid, :cid], :dependent => :destroy
 
   before_destroy do
     self.classification.down(:events_count) if self.classification
     self.signature.down(:events_count) if self.signature
     # Note: Need to decrement Severity, Sensor and User Counts
   end
-  
+
   def sig_id
     signature.sig_id
   end
@@ -79,14 +79,6 @@ class Event < ActiveRecord::Base
 
   def send_notification
     Delayed::Job.enqueue(Snorby::Jobs::AlertNotifications.new(self.sid, self.cid))
-  end
-
-  def self.limit(limit=25)
-    all(:limit => limit)
-  end
-
-  def self.order(column=:timestamp, order=:desc)
-    all(:order => column.to_sym.send(order.to_sym))
   end
 
   def to_param
@@ -136,6 +128,23 @@ class Event < ActiveRecord::Base
       events << get(event.first, event.last)
     end
     return events
+  end
+
+  def self.view_format(params={})
+    view = (params[:view] || :all).to_sym
+
+    case view
+    when :unique
+      Event.joins(:ip,:signature).group('ip_src, ip_dst, signature').where(:classification_id => nil)
+    when :signature
+      Event.joins(:ip,:signature).group('signature').where(:classification_id => nil)
+    when :src
+      Event.joins(:ip,:signature).group('ip_src').where(:classification_id => nil)
+    when :dst
+      Event.joins(:ip,:signature).group('ip_dst').where(:classification_id => nil)
+    else
+      Event.joins(:ip,:signature).where(:classification_id => nil)
+    end
   end
 
   def id
@@ -231,7 +240,7 @@ class Event < ActiveRecord::Base
       false
     end
   end
-  
+
   def source_port
     if protocol_data.first == :icmp
       nil
@@ -239,7 +248,7 @@ class Event < ActiveRecord::Base
       protocol_data.last.send(:"#{protocol_data.first}_sport")
     end
   end
-  
+
   def destination_port
     if protocol_data.first == :icmp
       nil
@@ -247,9 +256,11 @@ class Event < ActiveRecord::Base
       protocol_data.last.send(:"#{protocol_data.first}_dport")
     end
   end
-  
+
   def in_xml
-    %{<snorby>#{to_xml}#{user.to_xml if user}#{ip.to_xml}#{protocol_data.last.to_xml if protocol_data}#{classification.to_xml if classification}#{payload.to_xml if payload}#{notes.to_xml}</snorby>}
+    %{
+      <snorby>#{to_xml}#{user.to_xml if user}#{ip.to_xml}#{protocol_data.last.to_xml if protocol_data}#{classification.to_xml if classification}#{payload.to_xml if payload}#{notes.to_xml}</snorby>
+    }
   end
 
   def in_json
@@ -341,7 +352,7 @@ class Event < ActiveRecord::Base
       classification.update(:events_count => 0)
     end
   end
-  
+
   def self.classify_from_collection(collection, classification, user, reclassify=false)
     @classification = Classification.get(classification)
     @user ||= User.get(user)
@@ -349,11 +360,11 @@ class Event < ActiveRecord::Base
     collection.each do |event|
       next unless event
       old_classification = event.classification || false
-      
+
       next if old_classification == @classification
-      
+
       next if (old_classification && reclassify == false)
-      
+
       event.user = @user
 
       if @classification.blank?
@@ -368,59 +379,12 @@ class Event < ActiveRecord::Base
       else
         Rails.logger.info "ERROR: #{event.errors.inspect}"
       end
-      
+
     end
   end
 
   def self.search(params)
-    @search = {}
-    begin
-      unless params[:timestamp].to_i.zero?
-        if params[:timestamp] =~ /\s\-\s/
-          start_time, end_time = params[:timestamp].split(' - ')
-          @search.merge!({:conditions => ['timestamp >= ? AND timestamp <= ?', Chronic.parse(start_time).beginning_of_day, Chronic.parse(end_time).end_of_day]})
-        else
-          @search.merge!({:timestamp.gte => Chronic.parse(params[:timestamp]).beginning_of_day})
-        end
-      end
-
-      @search.merge!({ Event.sid => params[:sid] }) if params[:sid] unless params[:sid].to_i.zero?
-
-      if params[:severity].to_i.zero?
-        @search.merge!({ :"sig_id" => Signature.all(:sig_name.like => "%#{params[:signature_name]}%").map(&:sig_id) }) unless params[:signature_name] == ""
-      else
-        if params[:signature_name] == ""
-          @search.merge!({ :"sig_id" => Signature.all(:sig_priority => params[:severity].to_i).map(&:sig_id) })
-        else
-          @search.merge!({ :"sig_id" => Signature.all(:sig_name.like => "%#{params[:signature_name]}%", :sig_priority => params[:severity].to_i).map(&:sig_id) })
-        end
-      end
-
-      @search.merge!({ :classification_id => params[:classification_id] }) unless params[:classification_id].to_i.zero?
-
-      @search.merge!({ :"ip.ip_src" => IPAddr.new("#{params[:ip_src]}") }) unless (params[:ip_src] == "") || !params.has_key?(:ip_src)
-
-      @search.merge!({ :"ip.ip_dst" => IPAddr.new("#{params[:ip_dst]}") }) unless (params[:ip_dst] == "") || !params.has_key?(:ip_dst)
-
-      @search.merge!({ :notes_count.gt => params[:notes_count] }) if params.has_key?(:notes_count)
-
-      @search.merge!({ :users_count.gt => params[:users_count] }) if params.has_key?(:users_count)
-
-      # Debug
-      # puts @search.to_yaml
-
-      return all(@search) if params[:src_port].to_i.zero? && params[:dst_port].to_i.zero?
-
-      if params[:dst_port].to_i.zero?
-        return all(@search) && all(:"tcp.tcp_sport" => params[:src_port].to_i) | all(:"udp.udp_sport" => params[:src_port].to_i)
-      elsif params[:src_port].to_i.zero?
-        return all(@search) && all(:"tcp.tcp_dport" => params[:dst_port].to_i) | all(:"udp.udp_dport" => params[:dst_port].to_i)
-      else
-        return all(@search) && (all(:"tcp.tcp_sport" => params[:src_port].to_i) | all(:"udp.udp_sport" => params[:src_port].to_i) & all(:"tcp.tcp_dport" => params[:dst_port].to_i) | all(:"udp.udp_dport" => params[:dst_port].to_i))
-      end
-    rescue
-      all(@search)
-    end
+    # ...
   end
 
 end

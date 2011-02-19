@@ -1,5 +1,19 @@
 Snorby::Application.routes.draw do
 
+  devise_for :users, :path_names => { :sign_in => 'login', :sign_out => 'logout', :sign_up => 'register' }, :controllers => {:registrations => "registrations"} do
+    get "/login", :to => "devise/sessions#new", :as => :login
+    get "/logout", :to => "devise/sessions#destroy", :as => :logout
+    get '/reset/password', :to => "devise/passwords#edit"
+  end
+
+  resources :users do
+    collection do
+      post :toggle_settings
+      post :remove
+      post :add
+    end
+  end
+
   # This feature is not ready yet
   # resources :notifications
 
@@ -23,24 +37,24 @@ Snorby::Application.routes.draw do
       get :start_worker
     end
   end
-  
+
   resources :severities do
-    
+
   end
 
 
   match '/dashboard', :controller => 'Page', :action => 'dashboard'
   match '/search', :controller => 'Page', :action => 'search'
   match '/results', :controller => 'Page', :action => 'results'
-  
+
   match ':controller(/:action(/:sid/:cid))', :controller => 'Events'
 
   resources :events do
-    
+
     resources :notes do
-      
+
     end
-    
+
     collection do
       get :view
       get :create_mass_action
@@ -60,24 +74,10 @@ Snorby::Application.routes.draw do
       get :since
       get :activity
     end
-    
-  end
-  
-  resources :notes
 
-  devise_for :users, :path_names => { :sign_in => 'login', :sign_out => 'logout', :sign_up => 'register' }, :controllers => {:registrations => "registrations"} do
-    get "/login" => "devise/sessions#new"
-    get '/logout', :to => "devise/sessions#destroy"
-    get '/reset/password', :to => "devise/passwords#edit"
   end
-  
-  resources :users do
-    collection do
-      post :toggle_settings
-      post :remove
-      post :add
-    end
-  end
+
+  resources :notes
 
   resources :page do
     collection do

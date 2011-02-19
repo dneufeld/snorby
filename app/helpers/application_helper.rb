@@ -1,5 +1,16 @@
 module ApplicationHelper
 
+  def current_url(overwrite={})
+    url_for :only_path => false, :params => params.merge(overwrite)
+  end
+
+  def sortable(column, title = nil)
+    title ||= column.titleize
+    css_class = column == sort_column ? "current #{sort_direction}" : nil
+    direction = column == sort_column && sort_direction == "asc" ? "desc" : "asc"
+    link_to title, params.merge({:sort => column, :direction => direction}), {:class => css_class}
+  end
+
   def select_options(options, attributes={})
     select_options = ""
     options.each do |data|
@@ -47,13 +58,6 @@ module ApplicationHelper
     return content_tag(:div, html, :id => 'title')
   end
 
-  def sortable(column, title = nil)
-    title ||= column.titleize
-    css_class = column == sort_column ? "current #{sort_direction}" : nil
-    direction = column == sort_column && sort_direction == "asc" ? "desc" : "asc"
-    link_to title, {:sort => column, :direction => direction}, {:class => css_class}
-  end
-
   #
   # Pager
   #
@@ -67,107 +71,107 @@ module ApplicationHelper
   def pager(collection, path, fade_content=true)
     if fade_content
       %{<div class='pager main'>#{will_paginate(collection, :renderer => Snorby::Pager)}</div>}.html_safe
-    else
-       %{<div class='pager notes-pager'>#{will_paginate(collection, :renderer => Snorby::Pager)}</div>}.html_safe
-    end
-  end
+        else
+          %{<div class='pager notes-pager'>#{will_paginate(collection, :renderer => Snorby::Pager)}</div>}.html_safe
+            end
+            end
 
-  def drop_down_for(name, icon_path, id, &block)
-    html = link_to "#{image_tag(icon_path, :size => '16x16')} #{name}".html_safe, '#', :class => 'has_dropdown right-more', :id => "#{id}"
-    if block_given?
-      html += content_tag(:dl, "#{capture(&block)}".html_safe, :id => "#{id}", :class => 'drop-down-menu', :style => 'display:none;')
-    end
-    "<li>#{html}</li>".html_safe
-  end
+            def drop_down_for(name, icon_path, id, &block)
+              html = link_to "#{image_tag(icon_path, :size => '16x16')} #{name}".html_safe, '#', :class => 'has_dropdown right-more', :id => "#{id}"
+              if block_given?
+                html += content_tag(:dl, "#{capture(&block)}".html_safe, :id => "#{id}", :class => 'drop-down-menu', :style => 'display:none;')
+              end
+              "<li>#{html}</li>".html_safe
+            end
 
-  def drop_down_item(name, path='#', image_path=nil, options={})
-    image = image_path ? "#{image_tag(image_path)} " : ""
-    content_tag(:dd, "#{link_to "#{image}#{name}".html_safe, path, options}".html_safe)
-  end
+            def drop_down_item(name, path='#', image_path=nil, options={})
+              image = image_path ? "#{image_tag(image_path)} " : ""
+              content_tag(:dd, "#{link_to "#{image}#{name}".html_safe, path, options}".html_safe)
+            end
 
-  #
-  # Menu Item
-  #
-  # @param [String] name Menu Item Name
-  # @param [String] path Men Item Path
-  # @param [String] image_path Menu Item Image Path
-  # @param [Hash] options Options to padd to content_tag
-  #
-  # @return [String] HTMl Menu Item
-  #
-  def menu_item(name, path='#', image_path=nil, options={})
-    image = image_path ? "#{image_tag(image_path)} " : ""
-    content_tag(:li, "#{link_to "#{image}#{name}".html_safe, path, options}".html_safe)
-  end
+            #
+            # Menu Item
+            #
+            # @param [String] name Menu Item Name
+            # @param [String] path Men Item Path
+            # @param [String] image_path Menu Item Image Path
+            # @param [Hash] options Options to padd to content_tag
+            #
+            # @return [String] HTMl Menu Item
+            #
+            def menu_item(name, path='#', image_path=nil, options={})
+              image = image_path ? "#{image_tag(image_path)} " : ""
+              content_tag(:li, "#{link_to "#{image}#{name}".html_safe, path, options}".html_safe)
+            end
 
-  def snorby_box(title, normal_size=true, &block)
-    html = content_tag(:div, title, :id => 'box-title')
-    
-    if normal_size
-      html += content_tag(:div, capture(&block), :id => 'box-content')
-    else
-      html += content_tag(:div, capture(&block), :id => 'box-content-small')
-    end
-    
-    html += content_tag(:div, nil, :id => 'box-footer')
-    content_tag(:div, html, :id => 'snorby-box', :class => 'snorby-box')
-  end
+            def snorby_box(title, normal_size=true, &block)
+              html = content_tag(:div, title, :id => 'box-title')
 
-  def form_actions(&block)
-    content_tag(:div, capture(&block), :id => 'form-actions')
-  end
+              if normal_size
+                html += content_tag(:div, capture(&block), :id => 'box-content')
+              else
+                html += content_tag(:div, capture(&block), :id => 'box-content-small')
+              end
 
-  def button(name, options={})
-    # <span class="success" style="display:none">✓ saved</span>
-    options[:class] = options[:class] ? options[:class] += " default" : "default"
-    content_tag(:button, "<span>#{name}</span>".html_safe, options)
-  end
+              html += content_tag(:div, nil, :id => 'box-footer')
+              content_tag(:div, html, :id => 'snorby-box', :class => 'snorby-box')
+            end
 
-  def css_chart(percentage)
-    html = content_tag(:div, "<span>#{percentage}%</span>".html_safe, :style => "width: #{percentage}%")
-    content_tag(:div, html, :class => 'progress-container')
-  end
+            def form_actions(&block)
+              content_tag(:div, capture(&block), :id => 'form-actions')
+            end
 
-  def worker_status(show_image=false)
+            def button(name, options={})
+              # <span class="success" style="display:none">✓ saved</span>
+              options[:class] = options[:class] ? options[:class] += " default" : "default"
+              content_tag(:button, "<span>#{name}</span>".html_safe, options)
+            end
 
-    if Snorby::Jobs.sensor_cache? && Snorby::Jobs.daily_cache?
-      return content_tag(:span, "OK", :class => 'status ok add_tipsy', :title => 'Success: Everything Looks Good!')
-      #return image_tag('icons/active.png', :class => 'add_tipsy', :title => 'Success: Everything Looks Good!')
-    elsif Snorby::Jobs.sensor_cache?
-      return content_tag(:span, "WARNING", :class => 'status warning add_tipsy', :title => 'Warning: The Daily Cache Job Is Not Running...')
-      #return image_tag('icons/job-fail.png', :class => 'add_tipsy', :title => 'Warning: The Daily Cache Job Is Not In Running...')
-    elsif Snorby::Jobs.daily_cache?
-      return content_tag(:span, "WARNING", :class => 'status warning add_tipsy', :title => 'Warning: The Sensor Cache Job Is Not Running...')
-      #return image_tag('icons/job-fail.png', :class => 'add_tipsy', :title => 'Warning: The Sensor Cache Job Is Not In Running...')
-    else
-      return content_tag(:span, "FAIL", :class => 'status fail add_tipsy', :title => 'ERROR: Both Cache Jobs Are Not Running...')
-      #return image_tag('icons/dead.png', :class => 'add_tipsy', :title => 'ERROR: Both Cache Jobs Are Not Running...')
-    end
+            def css_chart(percentage)
+              html = content_tag(:div, "<span>#{percentage}%</span>".html_safe, :style => "width: #{percentage}%")
+              content_tag(:div, html, :class => 'progress-container')
+            end
 
-  end
+            def worker_status(show_image=false)
 
-  #
-  # Percentage Helper
-  # 
-  # Used for generating customized 
-  # percentages used in the view and pdf
-  # reports. This method will protect
-  # impossible percentages.
-  #
-  # @param [Integer] count Count from total
-  # @param [Integer] total The total count
-  # @param [Integer] round Rounding Option
-  # 
-  # @return [Integer] percentage
-  # 
-  def percentage_for(count, total, round=2)
-    begin
-      percentage = ((count.to_f / total.to_f) * 100).round(round)
-      return 100.round(round) if percentage.round > 100
-      percentage
-    rescue FloatDomainError
-      0
-    end
-  end
+              if Snorby::Jobs.sensor_cache? && Snorby::Jobs.daily_cache?
+                return content_tag(:span, "OK", :class => 'status ok add_tipsy', :title => 'Success: Everything Looks Good!')
+                #return image_tag('icons/active.png', :class => 'add_tipsy', :title => 'Success: Everything Looks Good!')
+              elsif Snorby::Jobs.sensor_cache?
+                return content_tag(:span, "WARNING", :class => 'status warning add_tipsy', :title => 'Warning: The Daily Cache Job Is Not Running...')
+                #return image_tag('icons/job-fail.png', :class => 'add_tipsy', :title => 'Warning: The Daily Cache Job Is Not In Running...')
+              elsif Snorby::Jobs.daily_cache?
+                return content_tag(:span, "WARNING", :class => 'status warning add_tipsy', :title => 'Warning: The Sensor Cache Job Is Not Running...')
+                #return image_tag('icons/job-fail.png', :class => 'add_tipsy', :title => 'Warning: The Sensor Cache Job Is Not In Running...')
+              else
+                return content_tag(:span, "FAIL", :class => 'status fail add_tipsy', :title => 'ERROR: Both Cache Jobs Are Not Running...')
+                #return image_tag('icons/dead.png', :class => 'add_tipsy', :title => 'ERROR: Both Cache Jobs Are Not Running...')
+              end
 
-end
+            end
+
+            #
+            # Percentage Helper
+            #
+            # Used for generating customized
+            # percentages used in the view and pdf
+            # reports. This method will protect
+            # impossible percentages.
+            #
+            # @param [Integer] count Count from total
+            # @param [Integer] total The total count
+            # @param [Integer] round Rounding Option
+            #
+            # @return [Integer] percentage
+            #
+            def percentage_for(count, total, round=2)
+              begin
+                percentage = ((count.to_f / total.to_f) * 100).round(round)
+                return 100.round(round) if percentage.round > 100
+                percentage
+              rescue FloatDomainError
+                0
+              end
+            end
+
+            end
