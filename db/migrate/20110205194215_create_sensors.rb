@@ -3,9 +3,11 @@ class CreateSensors < ActiveRecord::Migration
     create_table(:sensor) do |t|
       t.integer :sid
       t.string :name
+      
       t.text :hostname
-      t.text :interface
-      t.text :filter
+      t.string :interface
+      t.string :filter
+      
       t.integer :detail
       t.integer :encoding
       t.integer :last_cid
@@ -14,9 +16,6 @@ class CreateSensors < ActiveRecord::Migration
     end
     
     add_index :sensor, :sid
-    add_index :sensor, :hostname
-    add_index :sensor, :detail
-    add_index :sensor, :encoding
     add_index :sensor, :last_cid
     add_index :sensor, :events_count
     

@@ -1,6 +1,6 @@
 class CreateIcmps < ActiveRecord::Migration
   def self.up  
-    create_table(:icmp) do |t|
+    create_table(:icmphdr) do |t|
       t.integer :sid
       t.integer :cid
       t.integer :icmp_type
@@ -10,12 +10,12 @@ class CreateIcmps < ActiveRecord::Migration
       t.integer :icmp_seq
     end
     
-    add_index :icmp, :sid
-    add_index :icmp, :cid    
+    add_index :icmphdr, :sid
+    add_index :icmphdr, :cid    
     
   end
 
   def self.down
-    drop_table :icmp
+    drop_table :icmphdr
   end
 end

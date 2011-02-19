@@ -1,6 +1,6 @@
 class CreateNotifications < ActiveRecord::Migration
   def self.up  
-    create_table(:notification) do |t|
+    create_table(:notifications) do |t|
       t.text :description
       t.integer :sig_id
       t.string :ip_src
@@ -13,6 +13,6 @@ class CreateNotifications < ActiveRecord::Migration
   end
 
   def self.down
-    drop_table :notification
+    drop_table :notifications
   end
 end

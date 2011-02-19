@@ -1359,8 +1359,7 @@ ul.table{
 	padding: 0;
 }
 
-ul.table li.header,
-ul.table li.header a{
+ul.table li.header{
 	text-align: left;
 	color: #3f3f3f;
 	height: 25px;
@@ -1375,7 +1374,16 @@ ul.table li.header a{
 }
 
 ul.table li.header a{
-	text-decoration: none; !important	
+	text-align: left;
+	color: #3f3f3f;
+	height: 25px;
+	line-height: 25px;
+	font-weight: bold;
+	text-decoration: none;
+	font-variant: normal;
+	background-color: #ddd;
+	text-shadow: #fff 0 1px 0;
+	font-size: 0.9em;
 }
 
 ul.table li.header div{

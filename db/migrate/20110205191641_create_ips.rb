@@ -1,6 +1,6 @@
 class CreateIps < ActiveRecord::Migration
   def self.up  
-    create_table(:ip) do |t|
+    create_table(:iphdr) do |t|
       t.integer :sid
       t.integer :cid
       t.integer :ip_src, :default => 0
@@ -17,14 +17,14 @@ class CreateIps < ActiveRecord::Migration
       t.integer :ip_csum, :default => 0
     end
     
-    add_index :ip, :sid
-    add_index :ip, :cid  
-    add_index :ip, :ip_src
-    add_index :ip, :ip_dst   
+    add_index :iphdr, :sid
+    add_index :iphdr, :cid  
+    add_index :iphdr, :ip_src
+    add_index :iphdr, :ip_dst   
     
   end
 
   def self.down
-    drop_table :ip
+    drop_table :iphdr
   end
 end

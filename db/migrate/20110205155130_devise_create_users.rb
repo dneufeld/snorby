@@ -22,8 +22,8 @@ class DeviseCreateUsers < ActiveRecord::Migration
       t.integer :favorites_count, :default => 0
       
       t.string :name
-      t.boolean :admin
-      t.boolean :enabled
+      t.boolean :admin, :default => 0
+      t.boolean :enabled, :default => 1
 
       t.timestamps
     end

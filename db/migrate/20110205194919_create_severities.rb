@@ -1,6 +1,6 @@
 class CreateSeverities < ActiveRecord::Migration
   def self.up  
-    create_table(:severity) do |t|
+    create_table(:severities) do |t|
       t.integer :sig_id
       t.integer :events_count
       t.string :name
@@ -9,14 +9,14 @@ class CreateSeverities < ActiveRecord::Migration
       
     end
     
-    add_index :severity, :sig_id
-    add_index :severity, :events_count
-    add_index :severity, :text_color
-    add_index :severity, :bg_color
+    add_index :severities, :sig_id
+    add_index :severities, :events_count
+    add_index :severities, :text_color
+    add_index :severities, :bg_color
     
   end
 
   def self.down
-    drop_table :severity
+    drop_table :severities
   end
 end

@@ -1,6 +1,6 @@
 class CreateDailyCaches < ActiveRecord::Migration
   def self.up  
-    create_table(:daily_cache) do |t|
+    create_table(:daily_caches) do |t|
       t.integer :sid
       t.integer :cid
       t.datetime :ran_at
@@ -16,12 +16,12 @@ class CreateDailyCaches < ActiveRecord::Migration
       t.timestamps
     end
     
-    add_index :daily_cache, :sid
-    add_index :daily_cache, :cid
+    add_index :daily_caches, :sid
+    add_index :daily_caches, :cid
     
   end
 
   def self.down
-    drop_table :daily_cache
+    drop_table :daily_caches
   end
 end

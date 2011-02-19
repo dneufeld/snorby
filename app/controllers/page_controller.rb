@@ -30,7 +30,7 @@ class PageController < ApplicationController
 
     @last_cache = @cache.cache_time
 
-    @recent_events = Event.group(:signature).order('timestamp DESC').includes(:signature).limit(5)
+    @recent_events = Event.all.blank? ? [] : Event.group(:signature).order('timestamp DESC').includes(:signature).limit(5)
     # sigs = Event.all(:limit => 5, :order => [:timestamp.desc], :fields => [:sig_id], :unique => true).map(&:signature).map(&:sig_id)
     # @recent_events = Event.all(:sig_id => sigs).group_by { |x| x.sig_id }.map(&:last).map(&:first)
 

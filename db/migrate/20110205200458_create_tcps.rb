@@ -1,6 +1,6 @@
 class CreateTcps < ActiveRecord::Migration
   def self.up  
-    create_table(:tcp) do |t|
+    create_table(:tcphdr) do |t|
       t.integer :sid
       t.integer :cid
       t.integer :tcp_sport
@@ -15,14 +15,14 @@ class CreateTcps < ActiveRecord::Migration
       t.integer :tcp_urp
     end
     
-    add_index :tcp, :sid
-    add_index :tcp, :cid
-    add_index :tcp, :tcp_sport
-    add_index :tcp, :tcp_dsport
+    add_index :tcphdr, :sid
+    add_index :tcphdr, :cid
+    add_index :tcphdr, :tcp_sport
+    add_index :tcphdr, :tcp_dsport
     
   end
 
   def self.down
-    drop_table :tcp
+    drop_table :tcphdr
   end
 end

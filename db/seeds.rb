@@ -5,84 +5,47 @@ SnortSchema.create(:vseq => 107, :ctime => Time.now, :version => "Snorby #{Snorb
 User.create(:name => 'Administrator', :email => 'snorby@snorby.org', :password => 'snorby', :password_confirmation => 'snorby', :admin => true) if User.all.blank?
 
 # Snorby General Settings
-Setting.set(:company, 'Snorby.org') unless Setting.company?
-Setting.set(:email, 'snorby@snorby.org') unless Setting.email?
-Setting.set(:signature_lookup, 'http://rootedyour.com/snortsid?sid=$$gid$$:$$sid$$') unless Setting.signature_lookup?
-Setting.set(:daily, 1) unless Setting.daily?
-Setting.set(:weekly, 1) unless Setting.weekly?
-Setting.set(:monthly, 1) unless Setting.monthly?
-Setting.set(:lookups, 1) unless Setting.lookups?
-Setting.set(:notes, 1) unless Setting.notes?
-
-# Remove Legacy Settings
-Setting.get(:openfpc) ? Setting.get(:openfpc).destroy! : nil
-Setting.get(:openfpc_url) ? Setting.get(:openfpc_url).destroy! : nil
-
-# Full Packet Capture Support
-Setting.set(:packet_capture_url, nil) unless Setting.packet_capture_url?
-Setting.set(:packet_capture, nil) unless Setting.packet_capture?
-Setting.set(:packet_capture_type, 'openfpc') unless Setting.packet_capture_type?
-Setting.set(:packet_capture_auto_auth, 1) unless Setting.packet_capture_auto_auth?
-Setting.set(:packet_capture_user, nil) unless Setting.packet_capture_user?
-Setting.set(:packet_capture_password, nil) unless Setting.packet_capture_password?
+if Setting.all.blank?
+  Setting.create(:company => 'Snorby.org',
+  :email => 'snorby@snorby.org',
+  :signature_lookup => 'http://rootedyour.com/snortsid?sid=$$gid$$:$$sid$$',
+  :daily => true,
+  :weekly => true,
+  :monthly => true,
+  :lookups => true,
+  :notes => true,
+  :packet_capture_url => nil,
+  :packet_capture => nil,
+  :packet_capture_type => :openfpc,
+  :packet_capture_auto_auth => false,
+  :packet_capture_user => nil,
+  :packet_capture_password => nil,
+  )
+end
 
 # Load Default Classifications
 
-Classification.first_or_create({ :name => "Unauthorized Root Access" }, {
-  :name => 'Unauthorized Root Access',
-  :description => 'Unauthorized Root Access',
-  :hotkey => 1,
-  :locked => true
-})
+default_classifications = [
+  ['Unauthorized Root Access', 1],
+  ['Unauthorized User Access', 2],
+  ['Attempted Unauthorized Access', 3],
+  ['Denial of Service Attack', 4],
+  ['Policy Violation', 5],
+  ['Reconnaissance', 6],
+  ['Virus Infection', 7],
+  ['False Positive', 8]
+]
 
-Classification.first_or_create({ :name => "Unauthorized User Access" }, {
-  :name => 'Unauthorized User Access',
-  :description => 'Unauthorized User Access',
-  :hotkey => 2,
-  :locked => true
-})
-
-Classification.first_or_create({ :name => "Attempted Unauthorized Access" }, {
-  :name => 'Attempted Unauthorized Access',
-  :description => 'Attempted Unauthorized Access',
-  :hotkey => 3,
-  :locked => true
-})
-
-Classification.first_or_create({ :name => "Denial of Service Attack" }, {
-  :name => 'Denial of Service Attack',
-  :description => 'Denial of Service Attack',
-  :hotkey => 4,
-  :locked => true
-})
-
-Classification.first_or_create({ :name => "Policy Violation" }, {
-  :name => 'Policy Violation',
-  :description => 'Policy Violation',
-  :hotkey => 5,
-  :locked => true
-})
-
-Classification.first_or_create({:name => "Reconnaissance"}, {
-  :name => 'Reconnaissance',
-  :description => 'Reconnaissance',
-  :hotkey => 6,
-  :locked => true
-})
-
-Classification.first_or_create({:name => "Virus Infection"}, {
-  :name => 'Virus Infection',
-  :description => 'Virus Infection',
-  :hotkey => 7,
-  :locked => true
-})
-
-Classification.first_or_create({:name => "False Positive"}, {
-  :name => 'False Positive',
-  :description => 'False Positive',
-  :hotkey => 8,
-  :locked => true
-})
+default_classifications.each do |name, hotkey|
+  
+  Classification.find_or_create_by_name({
+    :name => name,
+    :description => name,
+    :hotkey => hotkey,
+    :locked => true
+  })
+  
+end
 
 # Load Default Severities
 if Severity.all.blank?

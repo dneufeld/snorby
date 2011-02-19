@@ -1,6 +1,6 @@
 <% content_for :footer do %>
 	<script type="text/javascript">
-		<% unless Event.last.blank? %>
+		<% unless Event.last.blank? || params[:action] != 'index' %>
 		
 			var last_event = <%= Event.last.json_time %>;
 			$('div#wrapper').attr({last_event: last_event.time});
@@ -12,7 +12,7 @@
 					if (old_id != data.time) {
 						$.get('events/since', {timestamp: old_id}, function (data) {
 							if (data.events.length != 0) {
-								if (page <= '1') { 
+								if (page <= '0' || page <= '1') { 
 									
 									if ($('div.new_events').length == 0) {
 										

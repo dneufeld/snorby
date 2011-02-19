@@ -25,7 +25,7 @@ namespace :snorby do
     Rake::Task['db:create'].invoke
     
     # Setup the snorby database
-    Rake::Task['db:autoupgrade'].invoke
+    Rake::Task['db:migrate'].invoke
     
     # Load Default Records
     Rake::Task['db:seed'].invoke
@@ -36,7 +36,7 @@ namespace :snorby do
   task :update => :environment do
     
     # Setup the snorby database
-    Rake::Task['db:autoupgrade'].invoke
+    Rake::Task['db:migrate'].invoke
     
     # Load Default Records
     Rake::Task['db:seed'].invoke

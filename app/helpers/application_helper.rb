@@ -1,3 +1,5 @@
+# coding: utf-8
+
 module ApplicationHelper
 
   def current_url(overwrite={})
@@ -8,7 +10,8 @@ module ApplicationHelper
     title ||= column.titleize
     css_class = column == sort_column ? "current #{sort_direction}" : nil
     direction = column == sort_column && sort_direction == "asc" ? "desc" : "asc"
-    link_to title, params.merge({:sort => column, :direction => direction}), {:class => css_class}
+    icon = params[:sort] == column ? direction == "asc" ? '↑' : '↓' : ''
+    link_to "#{icon}#{title}", params.merge({:sort => column, :direction => direction}), {:class => css_class}
   end
 
   def select_options(options, attributes={})

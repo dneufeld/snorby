@@ -1,6 +1,6 @@
 class CreateCaches < ActiveRecord::Migration
   def self.up
-    create_table(:cache) do |t|
+    create_table(:caches) do |t|
       t.integer :sid
       t.integer :cid
       t.datetime :ran_at
@@ -16,11 +16,11 @@ class CreateCaches < ActiveRecord::Migration
       t.timestamps
     end
     
-    add_index :cache, :sid
-    add_index :cache, :cid
+    add_index :caches, :sid
+    add_index :caches, :cid
   end
 
   def self.down
-    drop_table :cache
+    drop_table :caches
   end
 end

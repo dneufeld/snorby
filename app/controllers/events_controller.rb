@@ -37,7 +37,7 @@ class EventsController < ApplicationController
   end
 
   def view
-    @events = Event.all(:sid => params['sid'], :cid => params['cid']).page(params[:page].to_i, :per_page => @current_user.per_page_count, :order => [:timestamp.desc])
+    @events = Event.where(:sid => params['sid'], :cid => params['cid']).all.paginate(:page => params[:page], :per_page => User.current_user.per_page_count)
     @classifications ||= Classification.all
   end
 

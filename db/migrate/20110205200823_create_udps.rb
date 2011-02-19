@@ -1,6 +1,6 @@
 class CreateUdps < ActiveRecord::Migration
   def self.up  
-    create_table(:udp) do |t|
+    create_table(:udphdr) do |t|
       t.integer :sid
       t.integer :cid
       t.integer :udp_sport
@@ -9,12 +9,12 @@ class CreateUdps < ActiveRecord::Migration
       t.integer :udp_csum
     end
     
-    add_index :udp, :sid
-    add_index :udp, :cid
+    add_index :udphdr, :sid
+    add_index :udphdr, :cid
     
   end
 
   def self.down
-    drop_table :udp
+    drop_table :udphdr
   end
 end

@@ -1,6 +1,6 @@
 class CreateSnortSchemas < ActiveRecord::Migration
   def self.up  
-    create_table(:snort_schema) do |t|
+    create_table(:schema) do |t|
       t.integer :vseq
       t.datetime :ctime
       t.string :version
@@ -9,6 +9,6 @@ class CreateSnortSchemas < ActiveRecord::Migration
   end
 
   def self.down
-    drop_table :snort_schema
+    drop_table :schema
   end
 end

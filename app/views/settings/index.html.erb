@@ -6,7 +6,7 @@
 
 <div id='general-settings', class='grid_12 page boxit'>
 	
-	<%= form_tag '/settings', :multipart => true, :class => 'basic-form validate' do %>
+	<%= form_for(@settings, :html => {:multipart => true, :class => 'basic-form validate'}) do |f| %>
 	
 	
 	<div id='form-holder'>
@@ -14,21 +14,21 @@
 		<div class='grid_6'>
 			<p>
 				<%= label_tag 'Company Name' %><br />
-				<%= text_field_tag '[settings][company]', (Setting.company ? Setting.find(:company) : nil), :placeholder => 'Company Name...', :autocomplete => :off, :class => 'required' %>
+				<%= text_field_tag '[setting][company]', @settings.company, :placeholder => 'Company Name...', :autocomplete => :off, :class => 'required' %>
 			</p>
 
 			<p>
 				<%= label_tag 'Company Email' %> <i>(this email will be used as the report sender)</i><br />
-				<%= text_field_tag '[settings][email]', (Setting.email ? Setting.find(:email) : nil), :placeholder => 'Company Email...', :autocomplete => :off, :class => 'required email' %>
+				<%= text_field_tag '[setting][email]', @settings.email, :placeholder => 'Company Email...', :autocomplete => :off, :class => 'required email' %>
 			</p>
 			
 			<p>
 				<%= label_tag 'Signature Lookup URL' %> <i>(user $$sid$$ and $$gid$$ for the get request parameters)</i><br />
-				<%= text_field_tag '[settings][signature_lookup]', (Setting.signature_lookup ? Setting.find(:signature_lookup) : nil), :placeholder => 'Signature Lookup URL...', :autocomplete => :off, :class => 'required url' %>
+				<%= text_field_tag '[setting][signature_lookup]', @settings.signature_lookup, :placeholder => 'Signature Lookup URL...', :autocomplete => :off, :class => 'required url' %>
 			</p>
 			
 			<p>
-				<%= check_box_tag '[settings][packet_capture]', 0, (Setting.packet_capture ? Setting.find(:packet_capture) : nil) %> <%= label_tag 'Enable Packet Capture Support' %><br />
+				<%= f.check_box :packet_capture, :id => '_settings_packet_capture' %> <%= label_tag 'Enable Packet Capture Support' %><br />
 				<i>(Enable the Snorby Packet Capture Plugin)</i><br />
 			</p>
 
@@ -38,27 +38,27 @@
 		<div class='grid_5'>
 
 			<p>
-				<%= check_box_tag '[settings][daily]', 1, (Setting.daily ? Setting.find(:daily) : nil) %> <%= label_tag 'Daily Reports' %><br />
+				<%= f.check_box :daily %> <%= label_tag 'Daily Reports' %><br />
 				<i>(Send a report summarizing the captured traffic daily.)</i><br />
 			</p>
 
 			<p>
-				<%= check_box_tag '[settings][weekly]', 1, (Setting.weekly ? Setting.find(:weekly) : nil) %> <%= label_tag 'Weekly Reports' %><br />
+				<%= f.check_box :weekly %> <%= label_tag 'Weekly Reports' %><br />
 				<i>(Send a report summarizing the captured traffic weekly)</i><br />
 			</p>
 
 			<p>
-				<%= check_box_tag '[settings][monthly]', 1, (Setting.monthly ? Setting.find(:monthly) : nil) %> <%= label_tag 'Monthly Reports' %><br />
+				<%= f.check_box :monthly %> <%= label_tag 'Monthly Reports' %><br />
 				<i>(Send a report summarizing the captured traffic monthly)</i><br />
 			</p>
 
 			<p>
-				<%= check_box_tag '[settings][lookups]', 1, (Setting.lookups ? Setting.find(:lookups) : nil) %> <%= label_tag 'Address Lookups' %><br />
+				<%= f.check_box :lookups %> <%= label_tag 'Address Lookups' %><br />
 				<i>(This option enables the analyst to perform basic queries on source & destination addresses using external sources.)</i><br />
 			</p>
 
 			<p>
-				<%= check_box_tag '[settings][notes]', 1, Setting.find(:notes) %> <%= label_tag 'Event Notes' %><br />
+				<%= f.check_box :notes %> <%= label_tag 'Event Notes' %><br />
 				<i>(Allow analysts to apply notes to events)</i><br />
 				<br/>
 			</p>
@@ -73,19 +73,19 @@
 
 			<p class='pc-settings'>
 				<%= label_tag 'Packet Capture Plugin:' %>
-				<%= select_tag '[settings][packet_capture_type]', "<option value='openfpc'>OpenFPC</option><option value='solera'>Solera Networks</option>".html_safe, 
-				{ :class => 'require', :packet_capture_plugin => Setting.find(:packet_capture_type) } %><br />
+				<%= select_tag '[setting][packet_capture_type]', "<option value='openfpc'>OpenFPC</option><option value='solera'>Solera Networks</option>".html_safe, 
+				{ :class => 'require', :packet_capture_plugin => @settings.packet_capture_type } %><br />
 			</p>
 
 			<p class='pc-settings'>
-				<%= check_box_tag '[settings][packet_capture_auto_auth]', 1, (Setting.packet_capture_auto_auth ? Setting.find(:packet_capture_auto_auth) : nil) %> 
+				<%= f.check_box :packet_capture_auto_auth, :id => '_settings_packet_capture_auto_auth' %>
 				<%= label_tag 'Packet Capture Auto-Authenticate' %><br />
 				<i>(Pass the credentials in the get request)</i><br />
 			</p>
 
 			<p class='pc-settings'>
 				<%= label_tag 'Packet Capture Extract URL' %> <i>(Packet Capture extract URL)</i><br />
-				<%= text_field_tag '[settings][packet_capture_url]', (Setting.packet_capture_url ? Setting.find(:packet_capture_url) : nil), 
+				<%= text_field_tag '[setting][packet_capture_url]', @settings.packet_capture_url, 
 				:placeholder => 'Packet Capture Extract URL', :autocomplete => :off, :class => 'url' %>
 			</p>
 
@@ -95,14 +95,14 @@
 
 			<p class='pc-settings'>
 				<%= label_tag 'API User' %> <i>(User name for Packet Capture API)</i><br />
-				<%= text_field_tag '[settings][packet_capture_user]', (Setting.packet_capture_user ? Setting.find(:packet_capture_user) : nil), 
-				:placeholder => 'Packet Capture User', :autocomplete => :off, :class => '' %>
+				<%= text_field_tag '[setting][packet_capture_user]', @settings.packet_capture_user, 
+				:placeholder => 'Packet Capture User', :autocomplete => :off, :class => '', :id => '_settings_packet_capture_user' %>
 			</p>
 
 			<p class='pc-settings'>
 				<%= label_tag 'API Password' %> <i>(Password for Packet Capture API)</i><br />
-				<%= password_field_tag '[settings][packet_capture_password]', (Setting.packet_capture_password ? Setting.find(:packet_capture_password) : nil), 
-				:placeholder => 'Packet Capture Password', :autocomplete => :off, :class => '' %>
+				<%= password_field_tag '[setting][packet_capture_password]', @settings.packet_capture_password, 
+				:placeholder => 'Packet Capture Password', :autocomplete => :off, :class => '', :id => '_settings_packet_capture_password' %>
 			</p>
 
 		</div>
