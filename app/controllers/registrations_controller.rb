@@ -26,18 +26,19 @@ class RegistrationsController < Devise::RegistrationsController
   end
 
   def update
-
+    Rails.logger.debug 'HELLO!!!!'
+    
     if resource.update_with_password(params[resource_name])
       
-      if params[:user][:avatar].blank?
-        
-        resource.reprocess_avatar
-        
+      Rails.logger.debug 'HELLO!!!!'
+      
+      if params[:user][:avatar].blank?    
         set_flash_message :notice, :updated
         redirect_to edit_user_registration_path
       else
         render :template => "users/registrations/crop"
       end
+      
     else
       clean_up_passwords(resource)
       render_with_scope :edit

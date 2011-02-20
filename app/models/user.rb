@@ -1,7 +1,6 @@
-class User < ActiveRecord::Base
-  # Setup accessible (or protected) attributes for your model
-  attr_accessible :name, :email, :password, :password_confirmation, :remember_me, :admin
+require 'snorby/paperclip_processors/cropper'
 
+class User < ActiveRecord::Base
   cattr_accessor :current_user
   attr_accessor :crop_x, :crop_y, :crop_w, :crop_h
 
@@ -10,11 +9,13 @@ class User < ActiveRecord::Base
   devise :database_authenticatable, :registerable, :recoverable, :rememberable, :trackable, :validatable
 
   has_attached_file :avatar,
-  :styles => {
-    :large => "500x500>",
-    :medium => "300x300>",
-    :small => "100x100#"
-  }, :default_url => '/images/default_avatar.png', :processors => [:cropper]
+    :styles => { :large => "500x500>",
+                 :medium => "300x300>",
+                 :small => "100x100#" },
+    :url  => "/assets/avatars/:id/:style/:basename.:extension",
+    :path => ":rails_root/public/assets/avatars/:id/:style/:basename.:extension",
+    :default_url => '/images/default_avatar.png',
+    :processors => [:cropper]
 
   validates_attachment_content_type :avatar, :content_type => ["image/png", "image/gif", "image/jpeg"]
 
@@ -25,8 +26,10 @@ class User < ActiveRecord::Base
   has_many :events, :through => :favorites
 
   has_many :notes, :dependent => :destroy
-  
-  #has_many :events
+
+  # has_many :events
+
+  after_update :reprocess_avatar, :if => :cropping?
 
   def history
     @events = Event.where(:user_id => id).all
@@ -53,9 +56,9 @@ class User < ActiveRecord::Base
       return false
     end
   end
-  
+
   def added_notes_for_event?(event)
-    return true if event.notes.map(&:user_id).include?(id)
+    return true if event.notes.all.map(&:user_id).include?(id)
     false
   end
 
@@ -68,8 +71,10 @@ class User < ActiveRecord::Base
     @geometry[style] ||= Paperclip::Geometry.from_file(avatar.path(style))
   end
 
-  def reprocess_avatar
-    avatar.reprocess! if cropping?
-  end
+  private
+
+    def reprocess_avatar
+      avatar.reprocess!
+    end
 
 end

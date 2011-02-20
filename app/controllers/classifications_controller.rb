@@ -3,7 +3,7 @@ class ClassificationsController < ApplicationController
   before_filter :require_administrative_privileges
 
   def index
-    @classifications = Classification.all.page(params[:page].to_i, :per_page => @current_user.per_page_count, :order => [:id.asc])
+    @classifications = Classification.order('id asc').all.paginate(:page => params[:page], :per_page => User.current_user.per_page_count)
 
     respond_to do |format|
       format.html # index.html.erb
@@ -12,7 +12,7 @@ class ClassificationsController < ApplicationController
   end
 
   def show
-    @classification = Classification.get(params[:id])
+    @classification = Classification.find(params[:id])
 
     respond_to do |format|
       format.html # show.html.erb
@@ -30,7 +30,7 @@ class ClassificationsController < ApplicationController
   end
 
   def edit
-    @classification = Classification.get(params[:id])
+    @classification = Classification.find(params[:id])
   end
 
   def create
@@ -48,10 +48,10 @@ class ClassificationsController < ApplicationController
   end
 
   def update
-    @classification = Classification.get(params[:id])
+    @classification = Classification.find(params[:id])
 
     respond_to do |format|
-      if @classification.update(params[:classification])
+      if @classification.update_attributes(params[:classification])
         format.html { redirect_to(classifications_url, :notice => 'Classification was successfully updated.') }
         format.xml  { head :ok }
       else
@@ -62,8 +62,8 @@ class ClassificationsController < ApplicationController
   end
 
   def destroy
-    @classification = Classification.get(params[:id])
-    @classification.destroy!
+    @classification = Classification.find(params[:id])
+    @classification.destroy
 
     respond_to do |format|
       format.html { redirect_to(classifications_url) }

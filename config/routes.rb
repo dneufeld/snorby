@@ -9,9 +9,14 @@ Snorby::Application.routes.draw do
   resources :users do
     collection do
       post :toggle_settings
-      post :remove
       post :add
+      post :create
     end
+    
+    member do
+      get :remove
+    end
+    
   end
 
   # This feature is not ready yet

@@ -3,11 +3,15 @@ class UsersController < ApplicationController
   before_filter :require_administrative_privileges, :only => [:index, :add, :new, :remove]
   
   def index
-    @users = User.all.page(params[:page].to_i, :per_page => @current_user.per_page_count, :order => [:id.asc])
+    @users = User.order('id asc').all.paginate(:page => params[:page], :per_page => User.current_user.per_page_count)
   end
 
   def new
     @user = User.new
+  end
+  
+  def create
+    
   end
   
   def add
@@ -19,16 +23,25 @@ class UsersController < ApplicationController
     end
   end
   
+  def update
+    @user = User.find(params[:id])
+    if @user.update_attributes(params[:user])
+      render :json => {:success => 'User updated successfully.'}
+    else
+      render :json => {:error => 'Error while changing user attributes.'}
+    end
+  end
+  
   def remove
-    @user = User.get(params[:id])
-    @user.destroy!
-    redirect_to users_path, :notice => "Successfully Delete User"
+    @user = User.find(params[:id])
+    @user.destroy
+    redirect_to users_path, :notice => "User successfully deleted"
   end
 
   def toggle_settings
-    @user = User.get(params[:user_id])
+    @user = User.find(params[:user_id])
     
-    if @user.update(params[:user])
+    if @user.update_attributes(params[:user])
       render :json => {:success => 'User updated successfully.'}
     else
       render :json => {:error => 'Error while changing user attributes.'}

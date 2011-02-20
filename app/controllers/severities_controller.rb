@@ -3,7 +3,7 @@ class SeveritiesController < ApplicationController
   before_filter :require_administrative_privileges
 
   def index
-    @severities = Severity.all.page(params[:page].to_i, :per_page => @current_user.per_page_count, :order => [:id.asc])
+    @severities = Severity.order('id asc').all.paginate(:page => params[:page], :per_page => User.current_user.per_page_count)
   end
 
   def new
@@ -20,8 +20,8 @@ class SeveritiesController < ApplicationController
   end
 
   def update
-    @severity = Severity.get(params[:id])
-    if @severity.update(params[:severity])
+    @severity = Severity.find(params[:id])
+    if @severity.update_attributes(params[:severity])
       redirect_to severities_path, :notice => 'Severity Updated Successfully.'
     else
       render :action => 'edit', :notice => 'Error: Unable To Save Record.'
@@ -29,11 +29,11 @@ class SeveritiesController < ApplicationController
   end
 
   def edit
-    @severity = Severity.get(params[:id])
+    @severity = Severity.find(params[:id])
   end
 
   def destroy
-    @severity = Severity.get(params[:id])
+    @severity = Severity.find(params[:id])
     @severity.destroy
     redirect_to severities_path, :notice => 'Severity Removed Successfully.'
   end

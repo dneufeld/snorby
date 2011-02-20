@@ -1,10 +1,6 @@
-require 'snorby/model'
-
 class Severity < ActiveRecord::Base
-  
-  include Snorby::Model
 
-  has_many :signatures, :foreign_key => [:sig_id, :sig_priority]
+  has_many :signatures, :foreign_key => [:sig_priority]
 
   validates_presence_of :sig_id, :name, :text_color
   validates_uniqueness_of :sig_id
