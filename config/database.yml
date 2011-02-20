@@ -4,18 +4,16 @@
 #
 snorby: &snorby
   adapter: mysql2
+  database: snorby
   username: root
   password: s3cr3tsauce
   host: localhost
 
 development:
-  database: snorby
   <<: *snorby
 
 test:
-  database: snorby
   <<: *snorby
 
 production:
-  database: snorby
   <<: *snorby

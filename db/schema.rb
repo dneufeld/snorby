@@ -24,21 +24,7 @@ ActiveRecord::Schema.define(:version => 20110219213703) do
     t.text     "signature_metrics"
     t.text     "src_ips"
     t.text     "dst_ips"
-    t.datetime "created_at"
-    t.datetime "updated_at"
   end
-
-  add_index "caches", ["cid"], :name => "index_caches_on_cid"
-  add_index "caches", ["sid"], :name => "index_caches_on_sid"
-
-  create_table "category", :id => false, :force => true do |t|
-    t.integer  "sig_class_id"
-    t.string   "sig_class_name"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
-  add_index "category", ["sig_class_id"], :name => "index_category_on_sig_class_id"
 
   create_table "classifications", :force => true do |t|
     t.string   "name"
@@ -66,12 +52,18 @@ ActiveRecord::Schema.define(:version => 20110219213703) do
     t.text     "signature_metrics"
     t.text     "src_ips"
     t.text     "dst_ips"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.datetime "created_at",                       :null => false
+    t.datetime "updated_at",                       :null => false
   end
 
-  add_index "daily_caches", ["cid"], :name => "index_daily_caches_on_cid"
-  add_index "daily_caches", ["sid"], :name => "index_daily_caches_on_sid"
+  create_table "data", :id => false, :force => true do |t|
+    t.integer "sid",          :null => false
+    t.integer "cid",          :null => false
+    t.text    "data_payload"
+  end
+
+  add_index "data", ["cid"], :name => "index_data_cid"
+  add_index "data", ["sid"], :name => "index_data_sid"
 
   create_table "delayed_jobs", :force => true do |t|
     t.integer  "priority",   :default => 0
@@ -88,45 +80,51 @@ ActiveRecord::Schema.define(:version => 20110219213703) do
 
   add_index "delayed_jobs", ["priority", "run_at"], :name => "delayed_jobs_priority"
 
-  create_table "detail", :force => true do |t|
-    t.integer "detail_type"
-    t.text    "detail_text"
+  create_table "detail", :primary_key => "detail_type", :force => true do |t|
+    t.text "detail_text"
   end
 
-  create_table "encoding_type", :force => true do |t|
-    t.integer "encoding_type"
-    t.text    "encoding_text"
+  add_index "detail", ["detail_type"], :name => "index_detail_detail_type"
+
+  create_table "encoding", :primary_key => "encoding_type", :force => true do |t|
+    t.text "encoding_text"
   end
 
-  create_table "event", :primary_key => "sid", :force => true do |t|
+  add_index "encoding", ["encoding_type"], :name => "index_encoding_encoding_type"
+
+  create_table "event", :id => false, :force => true do |t|
+    t.integer  "sid",                              :null => false
     t.integer  "cid",                              :null => false
     t.integer  "sig_id"
     t.integer  "classification_id"
     t.integer  "users_count",       :default => 0
-    t.integer  "notes_count",       :default => 0
     t.integer  "user_id"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.integer  "notes_count",       :default => 0
+    t.datetime "timestamp"
   end
 
-  add_index "event", ["cid"], :name => "index_event_on_cid"
-  add_index "event", ["classification_id"], :name => "index_event_on_classification_id"
-  add_index "event", ["sid"], :name => "index_event_on_sid"
-  add_index "event", ["sig_id"], :name => "index_event_on_sig_id"
-  add_index "event", ["user_id"], :name => "index_event_on_user_id"
+  add_index "event", ["cid"], :name => "index_event_cid"
+  add_index "event", ["classification_id"], :name => "index_event_classification_id"
+  add_index "event", ["notes_count"], :name => "index_event_notes_count"
+  add_index "event", ["sid"], :name => "index_event_sid"
+  add_index "event", ["sig_id"], :name => "index_event_sig_id"
+  add_index "event", ["user_id"], :name => "index_event_user_id"
+  add_index "event", ["users_count"], :name => "index_event_users_count"
 
-  create_table "favorite", :force => true do |t|
+  create_table "favorites", :force => true do |t|
     t.integer "sid"
     t.integer "cid"
     t.integer "user_id"
   end
 
-  add_index "favorite", ["cid"], :name => "index_favorite_on_cid"
-  add_index "favorite", ["sid"], :name => "index_favorite_on_sid"
+  add_index "favorites", ["cid"], :name => "index_favorites_cid"
+  add_index "favorites", ["id"], :name => "index_favorites_id"
+  add_index "favorites", ["sid"], :name => "index_favorites_sid"
+  add_index "favorites", ["user_id"], :name => "index_favorites_user_id"
 
-  create_table "icmphdr", :force => true do |t|
-    t.integer "sid"
-    t.integer "cid"
+  create_table "icmphdr", :id => false, :force => true do |t|
+    t.integer "sid",       :null => false
+    t.integer "cid",       :null => false
     t.integer "icmp_type"
     t.integer "icmp_code"
     t.integer "icmp_csum"
@@ -134,41 +132,43 @@ ActiveRecord::Schema.define(:version => 20110219213703) do
     t.integer "icmp_seq"
   end
 
-  add_index "icmphdr", ["cid"], :name => "index_icmphdr_on_cid"
-  add_index "icmphdr", ["sid"], :name => "index_icmphdr_on_sid"
+  add_index "icmphdr", ["cid"], :name => "index_icmphdr_cid"
+  add_index "icmphdr", ["sid"], :name => "index_icmphdr_sid"
 
-  create_table "iphdr", :force => true do |t|
-    t.integer "sid"
-    t.integer "cid"
-    t.integer "ip_src",   :default => 0
-    t.integer "ip_dst",   :default => 0
-    t.integer "ip_ver",   :default => 0
-    t.integer "ip_hlen",  :default => 0
-    t.integer "ip_tos",   :default => 0
-    t.integer "ip_len",   :default => 0
-    t.integer "ip_id",    :default => 0
-    t.integer "ip_flags", :default => 0
-    t.integer "ip_off",   :default => 0
-    t.integer "ip_ttl",   :default => 0
-    t.integer "ip_proto", :default => 0
-    t.integer "ip_csum",  :default => 0
+  create_table "iphdr", :id => false, :force => true do |t|
+    t.integer "sid",                                     :null => false
+    t.integer "cid",                                     :null => false
+    t.string  "ip_src",   :limit => 50, :default => "0", :null => false
+    t.string  "ip_dst",   :limit => 50, :default => "0", :null => false
+    t.integer "ip_ver",                 :default => 0,   :null => false
+    t.integer "ip_hlen",                :default => 0,   :null => false
+    t.integer "ip_tos",                 :default => 0,   :null => false
+    t.integer "ip_len",                 :default => 0,   :null => false
+    t.integer "ip_id",                  :default => 0,   :null => false
+    t.integer "ip_flags",               :default => 0,   :null => false
+    t.integer "ip_off",                 :default => 0,   :null => false
+    t.integer "ip_ttl",                 :default => 0,   :null => false
+    t.integer "ip_proto",               :default => 0,   :null => false
+    t.integer "ip_csum",                :default => 0,   :null => false
   end
 
-  add_index "iphdr", ["cid"], :name => "index_iphdr_on_cid"
-  add_index "iphdr", ["ip_dst"], :name => "index_iphdr_on_ip_dst"
-  add_index "iphdr", ["ip_src"], :name => "index_iphdr_on_ip_src"
-  add_index "iphdr", ["sid"], :name => "index_iphdr_on_sid"
+  add_index "iphdr", ["cid"], :name => "index_iphdr_cid"
+  add_index "iphdr", ["ip_dst"], :name => "index_iphdr_ip_dst"
+  add_index "iphdr", ["ip_src"], :name => "index_iphdr_ip_src"
+  add_index "iphdr", ["sid"], :name => "index_iphdr_sid"
 
   create_table "notes", :force => true do |t|
-    t.integer "sid"
-    t.integer "cid"
-    t.integer "user_id"
-    t.text    "body"
+    t.integer  "sid"
+    t.integer  "cid"
+    t.integer  "user_id"
+    t.text     "body"
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
   end
 
-  add_index "notes", ["cid"], :name => "index_notes_on_cid"
-  add_index "notes", ["sid"], :name => "index_notes_on_sid"
-  add_index "notes", ["user_id"], :name => "index_notes_on_user_id"
+  add_index "notes", ["cid"], :name => "index_notes_cid"
+  add_index "notes", ["sid"], :name => "index_notes_sid"
+  add_index "notes", ["user_id"], :name => "index_notes_user_id"
 
   create_table "notifications", :force => true do |t|
     t.text    "description"
@@ -180,64 +180,40 @@ ActiveRecord::Schema.define(:version => 20110219213703) do
     t.text    "sensor_ids"
   end
 
-  create_table "opt", :force => true do |t|
-    t.integer "sid"
-    t.integer "cid"
-    t.integer "optid"
+  create_table "opt", :id => false, :force => true do |t|
+    t.integer "sid",       :null => false
+    t.integer "cid",       :null => false
+    t.integer "optid",     :null => false
     t.integer "opt_proto"
     t.integer "opt_code"
     t.integer "opt_len"
     t.text    "opt_data"
   end
 
-  add_index "opt", ["cid"], :name => "index_opt_on_cid"
-  add_index "opt", ["optid"], :name => "index_opt_on_optid"
-  add_index "opt", ["sid"], :name => "index_opt_on_sid"
+  add_index "opt", ["cid"], :name => "index_opt_cid"
+  add_index "opt", ["optid"], :name => "index_opt_optid"
+  add_index "opt", ["sid"], :name => "index_opt_sid"
 
-  create_table "payload", :force => true do |t|
-    t.integer "sid"
-    t.integer "cid"
-    t.text    "data_payload"
-  end
-
-  add_index "payload", ["cid"], :name => "index_payload_on_cid"
-  add_index "payload", ["sid"], :name => "index_payload_on_sid"
-
-  create_table "reference", :force => true do |t|
-    t.integer "ref_id"
+  create_table "reference", :primary_key => "ref_id", :force => true do |t|
     t.integer "ref_system_id"
-    t.text    "tef_tag"
+    t.text    "ref_tag"
   end
 
-  add_index "reference", ["ref_id"], :name => "index_reference_on_ref_id"
+  add_index "reference", ["ref_id"], :name => "index_reference_ref_id"
 
-  create_table "reference_system", :force => true do |t|
-    t.integer "ref_system_id"
-    t.string  "ref_system_name"
+  create_table "reference_system", :primary_key => "ref_system_id", :force => true do |t|
+    t.string "ref_system_name", :limit => 50
   end
 
-  add_index "reference_system", ["ref_system_id"], :name => "index_reference_system_on_ref_system_id"
+  add_index "reference_system", ["ref_system_id"], :name => "index_reference_system_ref_system_id"
 
   create_table "schema", :force => true do |t|
     t.integer  "vseq"
     t.datetime "ctime"
-    t.string   "version"
+    t.string   "version", :limit => 50
   end
 
-  create_table "sensor", :primary_key => "sid", :force => true do |t|
-    t.string  "name"
-    t.text    "hostname"
-    t.string  "interface"
-    t.string  "filter"
-    t.integer "detail"
-    t.integer "encoding"
-    t.integer "last_cid"
-    t.integer "events_count", :default => 0
-  end
-
-  add_index "sensor", ["events_count"], :name => "index_sensor_on_events_count"
-  add_index "sensor", ["last_cid"], :name => "index_sensor_on_last_cid"
-  add_index "sensor", ["sid"], :name => "index_sensor_on_sid"
+  add_index "schema", ["id"], :name => "index_schema_id"
 
   create_table "settings", :force => true do |t|
     t.string  "company"
@@ -269,17 +245,13 @@ ActiveRecord::Schema.define(:version => 20110219213703) do
   add_index "severities", ["sig_id"], :name => "index_severities_on_sig_id"
   add_index "severities", ["text_color"], :name => "index_severities_on_text_color"
 
-  create_table "sig_reference", :force => true do |t|
-    t.integer "sig_id"
-    t.integer "ref_seq"
-    t.integer "ref_id"
+  create_table "sig_class", :primary_key => "sig_class_id", :force => true do |t|
+    t.string "sig_class_name", :limit => 50
   end
 
-  add_index "sig_reference", ["ref_seq"], :name => "index_sig_reference_on_ref_seq"
-  add_index "sig_reference", ["sig_id"], :name => "index_sig_reference_on_sig_id"
+  add_index "sig_class", ["sig_class_id"], :name => "index_sig_class_sig_class_id"
 
-  create_table "signature", :force => true do |t|
-    t.integer "sig_id"
+  create_table "signature", :primary_key => "sig_id", :force => true do |t|
     t.integer "sig_class_id"
     t.text    "sig_name"
     t.integer "sig_priority"
@@ -289,16 +261,16 @@ ActiveRecord::Schema.define(:version => 20110219213703) do
     t.integer "events_count", :default => 0
   end
 
-  add_index "signature", ["events_count"], :name => "index_signature_on_events_count"
-  add_index "signature", ["sig_class_id"], :name => "index_signature_on_sig_class_id"
-  add_index "signature", ["sig_id"], :name => "index_signature_on_sig_id"
-  add_index "signature", ["sig_priority"], :name => "index_signature_on_sig_priority"
+  add_index "signature", ["events_count"], :name => "index_signature_events_count"
+  add_index "signature", ["sig_class_id"], :name => "index_signature_sig_class_id"
+  add_index "signature", ["sig_id"], :name => "index_signature_sig_id"
+  add_index "signature", ["sig_priority"], :name => "index_signature_sig_priority"
 
-  create_table "tcphdr", :force => true do |t|
-    t.integer "sid"
-    t.integer "cid"
+  create_table "tcphdr", :id => false, :force => true do |t|
+    t.integer "sid",       :null => false
+    t.integer "cid",       :null => false
     t.integer "tcp_sport"
-    t.integer "tcp_dsport"
+    t.integer "tcp_dport"
     t.integer "tcp_seq"
     t.integer "tcp_ack"
     t.integer "tcp_off"
@@ -309,22 +281,24 @@ ActiveRecord::Schema.define(:version => 20110219213703) do
     t.integer "tcp_urp"
   end
 
-  add_index "tcphdr", ["cid"], :name => "index_tcphdr_on_cid"
-  add_index "tcphdr", ["sid"], :name => "index_tcphdr_on_sid"
-  add_index "tcphdr", ["tcp_dsport"], :name => "index_tcphdr_on_tcp_dsport"
-  add_index "tcphdr", ["tcp_sport"], :name => "index_tcphdr_on_tcp_sport"
+  add_index "tcphdr", ["cid"], :name => "index_tcphdr_cid"
+  add_index "tcphdr", ["sid"], :name => "index_tcphdr_sid"
+  add_index "tcphdr", ["tcp_dport"], :name => "index_tcphdr_tcp_dport"
+  add_index "tcphdr", ["tcp_sport"], :name => "index_tcphdr_tcp_sport"
 
-  create_table "udphdr", :force => true do |t|
-    t.integer "sid"
-    t.integer "cid"
+  create_table "udphdr", :id => false, :force => true do |t|
+    t.integer "sid",       :null => false
+    t.integer "cid",       :null => false
     t.integer "udp_sport"
-    t.integer "udp_dsport"
+    t.integer "udp_dport"
     t.integer "udp_len"
     t.integer "udp_csum"
   end
 
-  add_index "udphdr", ["cid"], :name => "index_udphdr_on_cid"
-  add_index "udphdr", ["sid"], :name => "index_udphdr_on_sid"
+  add_index "udphdr", ["cid"], :name => "index_udphdr_cid"
+  add_index "udphdr", ["sid"], :name => "index_udphdr_sid"
+  add_index "udphdr", ["udp_dport"], :name => "index_udphdr_udp_dport"
+  add_index "udphdr", ["udp_sport"], :name => "index_udphdr_udp_sport"
 
   create_table "users", :force => true do |t|
     t.string   "email",                               :default => "",    :null => false

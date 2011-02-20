@@ -24,6 +24,8 @@ namespace :snorby do
     # Create the snorby database if it does not currently exist
     Rake::Task['db:create'].invoke
     
+    Snorby::Migrations.load
+    
     # Setup the snorby database
     Rake::Task['db:migrate'].invoke
     
