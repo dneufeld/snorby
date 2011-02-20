@@ -61,6 +61,10 @@ function set_classification (class_id) {
 	var current_page = $('div#events').attr('data-action');
 	var current_page_number = $('div#events').attr('data-page');
 	
+	if (current_page_number == '0') {
+		current_page_number = 1;
+	};
+	
 	if (selected_events.length > 0) {
 		$('div.content').fadeTo(500, 0.4);
 		Snorby.helpers.remove_click_events(true);

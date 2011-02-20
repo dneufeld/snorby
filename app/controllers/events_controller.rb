@@ -3,7 +3,7 @@ class EventsController < ApplicationController
   helper_method :sort_column, :sort_direction
 
   def index
-    @events = Event.view_format(params).order(sort_column + " " + sort_direction).all.paginate(:page => params[:page], :per_page => User.current_user.per_page_count)
+    @events = Event.order(sort_column + " " + sort_direction).view_format(params).all.paginate(:page => params[:page], :per_page => User.current_user.per_page_count)
     @classifications ||= Classification.all
   end
 
@@ -102,6 +102,7 @@ class EventsController < ApplicationController
 
   def classify
     @events = Event.find_by_ids(params[:events])
+    Rails.logger.debug @events    
     Event.classify_from_collection(@events, params[:classification].to_i, User.current_user.id, true)
     render :layout => false, :status => 200
   end
@@ -165,11 +166,11 @@ class EventsController < ApplicationController
 
     def sort_column
       columns = ['sid', 'cid', 'ip_src', 'ip_dst', 'severity', 'signature', 'sig_priority', 'timestamp']
-      columns.include?(params[:sort]) ? params[:sort] : "timestamp"
+      columns.include?(params[:sort]) ? params[:sort] : 'timestamp'
     end
 
     def sort_direction
-      %w[asc desc].include?(params[:direction]) ? params[:direction] : "asc"
+      %w[asc desc].include?(params[:direction]) ? params[:direction] : "desc"
     end
 
 end

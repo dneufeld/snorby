@@ -1,4 +1,4 @@
-<li id='event_<%= event.sid %><%= event.cid %>' class='event' data-event-id='<%= event.id %>' data-event-sid='<%= event.sid %>' data-event-cid='<%= event.cid %>'>
+<li id='event_<%= event.sid %><%= event.cid %>' class='event' data-event-id='<%= event.to_id %>' data-event-sid='<%= event.sid %>' data-event-cid='<%= event.cid %>'>
 	
 	<% classification_css = event.classification.blank? ? nil : "classified" %>
 	

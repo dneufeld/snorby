@@ -1,8 +1,4 @@
-require 'snorby/model/counter'
-
 class Classification < ActiveRecord::Base
-
-  include Snorby::Model::Counter
 
   has_many :events, :dependent => :destroy
 
@@ -16,9 +12,6 @@ class Classification < ActiveRecord::Base
     "f#{hotkey}"
   end
 
-  #
-  #  
-  # 
   def event_percentage
     begin
       ((self.events_count.to_f / Event.count.to_f) * 100).round(2)

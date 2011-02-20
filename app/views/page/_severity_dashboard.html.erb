@@ -14,7 +14,7 @@
 		<div class='data'>
 			
 			<div id='box-count'>
-				<%= @high.sum %>
+				<%= @high.is_a?(Fixnum) ? @high : @high.sum %>
 			</div>
 			
 			<div id="box-title">
@@ -27,7 +27,7 @@
 	</div>
 	
 	<div class='footer'>
-	<span><%= @high.sum %> / <%= @event_count %></span> 
+	<span><%= @high.is_a?(Fixnum) ? @high : @high.sum %> / <%= @event_count %></span> 
 	</div>
 	
 </div>
@@ -38,7 +38,7 @@
 		<div class='data'>
 			
 			<div id='box-count'>
-				<%= @medium.sum %>
+				<%= @medium.is_a?(Fixnum) ? @medium : @medium.sum %>
 			</div>
 			
 			<div id="box-title">
@@ -51,7 +51,7 @@
 	</div>
 	
 	<div class='footer'>
-	<span><%= @medium.sum %> / <%= @event_count %></span> 
+	<span><%= @medium.is_a?(Fixnum) ? @medium : @medium.sum %> / <%= @event_count %></span> 
 	</div>
 	
 </div>
@@ -62,7 +62,7 @@
 		<div class='data'>
 			
 			<div id='box-count'>
-				<%= @low.sum %>
+				<%= @low.is_a?(Fixnum) ? @low : @low.sum %>
 			</div>
 			
 			<div id="box-title">
@@ -75,7 +75,7 @@
 	</div>
 	
 	<div class='footer'>
-	<span><%= @low.sum %> / <%= @event_count %></span> 
+	<span><%= @low.is_a?(Fixnum) ? @low : @low.sum %> / <%= @event_count %></span> 
 	</div>
 	
 </div>

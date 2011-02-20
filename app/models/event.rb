@@ -33,6 +33,10 @@ class Event < ActiveRecord::Base
 
   has_one :ip, :class_name => 'Ip', :foreign_key => [:sid, :cid], :dependent => :destroy
 
+  scope :today, lambda { 
+    where("timestamp >= ? AND timestamp <= ?", Time.now.beginning_of_day, Time.now.end_of_day)
+  }
+
   def sig_id
     signature.sig_id
   end
@@ -75,21 +79,21 @@ class Event < ActiveRecord::Base
     "#{sid},#{cid}"
   end
 
-  def self.last_month
-    all(:timestamp.gte => 2.month.ago.beginning_of_month, :timestamp.lte => 1.month.ago.end_of_month)
-  end
-
-  def self.last_week
-    all(:timestamp.gte => 2.week.ago.beginning_of_week, :timestamp.lte => 1.week.ago.end_of_week)
-  end
-
-  def self.yesterday
-    all(:timestamp.gte => 1.day.ago.beginning_of_day, :timestamp.lte => 1.day.ago.end_of_day)
-  end
-
-  def self.today
-    all(:timestamp.gte => Time.now.beginning_of_day, :timestamp.lte => Time.now.end_of_day)
-  end
+  # def self.last_month
+  #   all(:timestamp.gte => 2.month.ago.beginning_of_month, :timestamp.lte => 1.month.ago.end_of_month)
+  # end
+  # 
+  # def self.last_week
+  #   all(:timestamp.gte => 2.week.ago.beginning_of_week, :timestamp.lte => 1.week.ago.end_of_week)
+  # end
+  # 
+  # def self.yesterday
+  #   all(:timestamp.gte => 1.day.ago.beginning_of_day, :timestamp.lte => 1.day.ago.end_of_day)
+  # end
+  # 
+  # def self.today
+  #   where("timestamp >= ? AND timestamp <= ?", Time.now.beginning_of_day, Time.now.end_of_day)
+  # end
 
   def self.find_classification(classification_id)
     all(:classification_id => classification_id)
@@ -111,13 +115,20 @@ class Event < ActiveRecord::Base
     all(:timestamp.gte => start_time, :timestamp.lt => end_time, :order => [:timestamp.desc])
   end
 
+  def to_id
+    "#{sid}.#{cid}"
+  end
+
   def self.find_by_ids(ids)
-    events = []
-    ids.split(',').collect do |e|
-      event = e.split('-')
-      events << get(event.first, event.last)
+    return [] unless ids
+    event_ids, conditions = ids.split(/\,/), []
+
+    event_ids.each do |event|
+      esid, ecid = event.split(/\./).map(&:to_i)
+      conditions << "(sid = #{esid} AND cid = #{ecid})"
     end
-    return events
+    
+    where(conditions.join(' OR ')).all
   end
 
   def self.view_format(params={})
@@ -339,8 +350,8 @@ class Event < ActiveRecord::Base
   end
 
   def self.classify_from_collection(collection, classification, user, reclassify=false)
-    @classification = Classification.get(classification)
-    @user ||= User.get(user)
+    @classification = classification.zero? ? nil : Classification.find(classification)
+    @user = User.find(user)
 
     collection.each do |event|
       next unless event
@@ -349,7 +360,7 @@ class Event < ActiveRecord::Base
       next if old_classification == @classification
 
       next if (old_classification && reclassify == false)
-
+      
       event.user = @user
 
       if @classification.blank?
@@ -357,14 +368,8 @@ class Event < ActiveRecord::Base
       else
         event.classification = @classification
       end
-
-      if event.save
-        @classification.up(:events_count) if @classification
-        old_classification.down(:events_count) if old_classification
-      else
-        Rails.logger.info "ERROR: #{event.errors.inspect}"
-      end
-
+      
+      event.save
     end
   end
 

@@ -12,6 +12,7 @@ class DeviseCreateUsers < ActiveRecord::Migration
       
       t.integer :accept_notes, :default => 1
       t.integer :notes_count, :default => 0
+      t.integer :events_count, :default => 0
       
       t.string :avatar_file_name
       t.string :avatar_content_type

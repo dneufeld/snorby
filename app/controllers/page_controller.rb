@@ -1,5 +1,7 @@
 class PageController < ApplicationController
 
+  include Snorby::Helpers::Cache
+
   def dashboard
     @range = params[:range].blank? ? 'today' : params[:range]
 
@@ -41,7 +43,7 @@ class PageController < ApplicationController
         render :pdf => "Snorby Report - #{@start_time.strftime('%A-%B-%d-%Y-%I-%M-%p')} - #{@end_time.strftime('%A-%B-%d-%Y-%I-%M-%p')}", :template => "page/dashboard.pdf.erb", :layout => 'pdf.html.erb', :stylesheets => ["pdf"]
       end
     end
-    
+
   end
 
   def search

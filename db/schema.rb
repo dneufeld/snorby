@@ -251,7 +251,7 @@ ActiveRecord::Schema.define(:version => 20110219213703) do
 
   create_table "severities", :force => true do |t|
     t.integer "sig_id"
-    t.integer "events_count"
+    t.integer "events_count", :default => 0
     t.string  "name"
     t.string  "text_color",   :default => "#fff"
     t.string  "bg_color",     :default => "#ddd"
@@ -339,6 +339,7 @@ ActiveRecord::Schema.define(:version => 20110219213703) do
     t.string   "last_sign_in_ip"
     t.integer  "accept_notes",                        :default => 1
     t.integer  "notes_count",                         :default => 0
+    t.integer  "events_count",                        :default => 0
     t.string   "avatar_file_name"
     t.string   "avatar_content_type"
     t.integer  "avatar_file_size"
