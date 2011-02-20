@@ -1,7 +1,6 @@
 module Snorby
   module Migrations
     class Cache
-
       include DataMapper::Resource
 
       storage_names[:default] = "caches"

@@ -10,14 +10,10 @@ gem 'jquery-rails'
 # DM deps for legacy database migrations
 gem 'rails',                  RAILS_VERSION
 gem 'jquery-rails'
-gem 'bundler',                '~> 1.0.0'
 
 gem 'dm-core',                DM_VERSION
-gem 'dm-do-adapter',          DM_VERSION
-gem 'dm-active_model',        DM_VERSION
 gem 'dm-mysql-adapter',       DM_VERSION
 gem 'dm-migrations',          DM_VERSION
-gem 'dm-types',               DM_VERSION
 gem 'dm-timestamps',          DM_VERSION
 
 gem 'activesupport',          RAILS_VERSION, :require => 'active_support'

@@ -9,9 +9,9 @@ module Snorby
 
       property :cid, Integer, :key => true, :index => true
 
-      property :ip_src, String, :index => true, :min => 0, :required => true, :default => 0
+      property :ip_src, Integer, :index => true, :min => 0, :required => true
 
-      property :ip_dst, String, :index => true, :min => 0, :required => true, :default => 0
+      property :ip_dst, Integer, :index => true, :min => 0, :required => true
 
       property :ip_ver, Integer, :min => 0, :required => true, :default => 0
 

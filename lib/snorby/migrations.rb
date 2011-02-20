@@ -1,7 +1,6 @@
 require 'dm-core'
-require 'dm-types'
-require 'dm-migrations'
 require 'dm-timestamps'
+require "active_record"
 
 require 'snorby/migrations/cache'
 require 'snorby/migrations/category'
@@ -37,7 +36,7 @@ module Snorby
           database = database[:snorby]
           database["adapter"] = database["adapter"] == "mysql2" ? "mysql" : database["adapter"]
           DataMapper.setup(:default, database)
-          DataMapper.auto_upgrade!
+          DataMapper.finalize.auto_migrate!
         end
       else
         raise('Error - Unable to locate database.yml')

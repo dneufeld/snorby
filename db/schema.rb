@@ -215,6 +215,23 @@ ActiveRecord::Schema.define(:version => 20110219213703) do
 
   add_index "schema", ["id"], :name => "index_schema_id"
 
+  create_table "sensor", :primary_key => "sid", :force => true do |t|
+    t.string  "name",         :limit => 50, :default => "Click To Change Me"
+    t.text    "hostname"
+    t.text    "interface"
+    t.text    "filter"
+    t.integer "detail"
+    t.integer "encoding"
+    t.integer "last_cid"
+    t.integer "events_count",               :default => 0
+  end
+
+  add_index "sensor", ["detail"], :name => "index_sensor_detail"
+  add_index "sensor", ["encoding"], :name => "index_sensor_encoding"
+  add_index "sensor", ["events_count"], :name => "index_sensor_events_count"
+  add_index "sensor", ["last_cid"], :name => "index_sensor_last_cid"
+  add_index "sensor", ["sid"], :name => "index_sensor_sid"
+
   create_table "settings", :force => true do |t|
     t.string  "company"
     t.string  "email"
@@ -250,6 +267,15 @@ ActiveRecord::Schema.define(:version => 20110219213703) do
   end
 
   add_index "sig_class", ["sig_class_id"], :name => "index_sig_class_sig_class_id"
+
+  create_table "sig_reference", :id => false, :force => true do |t|
+    t.integer "sig_id",  :null => false
+    t.integer "ref_seq", :null => false
+    t.integer "ref_id"
+  end
+
+  add_index "sig_reference", ["ref_seq"], :name => "index_sig_reference_ref_seq"
+  add_index "sig_reference", ["sig_id"], :name => "index_sig_reference_sig_id"
 
   create_table "signature", :primary_key => "sig_id", :force => true do |t|
     t.integer "sig_class_id"
