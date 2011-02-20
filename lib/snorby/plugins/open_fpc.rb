@@ -35,7 +35,7 @@ module Snorby
       def initialize(event, params={})
         @event = event
         @params = standardize_parameters(params, PLUGIN_PARAMS)
-        @url = Setting.packet_capture_url? ? Setting.find(:packet_capture_url) : '#'
+        @url = Setting.packet_capture_url? ? Setting.packet_capture_url : '#'
       end
 
       def to_s
@@ -53,8 +53,8 @@ module Snorby
       def build_url_parameters
         
         if Setting.packet_capture_auto_auth?
-          @params.merge!(:user => Setting.find(:packet_capture_user)) if Setting.packet_capture_user?
-          @params.merge!(:password => Setting.find(:packet_capture_password)) if Setting.packet_capture_password?
+          @params.merge!(:user => Setting.packet_capture_user) if Setting.packet_capture_user?
+          @params.merge!(:password => Setting.packet_capture_password) if Setting.packet_capture_password?
         end
 
         if @params.has_key?(:protocol)

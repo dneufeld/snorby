@@ -24,13 +24,10 @@ class Sensor < ActiveRecord::Base
   end
 
   def last
-    return Event.find(sid, last_cid) unless last_cid.blank?
+    return Event.where(:sid => sid, :cid => last_cid).first unless last_cid.blank?
     false
   end
-  
-  #
-  #  
-  # 
+
   def event_percentage
     begin
       total_event_count = Sensor.all.map(&:events_count).sum

@@ -1,9 +1,6 @@
-require 'snorby/model/counter'
-
 class User < ActiveRecord::Base
   # Setup accessible (or protected) attributes for your model
   attr_accessible :name, :email, :password, :password_confirmation, :remember_me, :admin
-  include Snorby::Model::Counter
 
   cattr_accessor :current_user
   attr_accessor :crop_x, :crop_y, :crop_w, :crop_h
@@ -28,8 +25,12 @@ class User < ActiveRecord::Base
   has_many :events, :through => :favorites
 
   has_many :notes, :dependent => :destroy
+  
+  #has_many :events
 
-  has_many :events
+  def history
+    @events = Event.where(:user_id => id).all
+  end
 
   #
   # Converts the user to a String.

@@ -41,7 +41,7 @@ module Snorby
       end
 
       def to_s
-        "#{Setting.packet_capture_url? ? Setting.find(:packet_capture_url) : '#'}#{build_url_parameters}"
+        "#{Setting.packet_capture_url? ? Setting.packet_capture_url : '#'}#{build_url_parameters}"
       end
 
       private
@@ -62,8 +62,8 @@ module Snorby
         def build_user_password_params(connector='&')
           if Setting.packet_capture_auto_auth?
             if Setting.packet_capture_user? && Setting.packet_capture_password?
-              @url += "#{connector}user=#{Setting.find(:packet_capture_user)}"
-              @url += "&password=#{Setting.find(:packet_capture_password)}"
+              @url += "#{connector}user=#{Setting.packet_capture_user}"
+              @url += "&password=#{Setting.packet_capture_password}"
             end
           end
         end

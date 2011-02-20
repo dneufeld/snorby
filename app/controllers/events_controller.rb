@@ -8,7 +8,7 @@ class EventsController < ApplicationController
   end
 
   def queue
-    @events ||= current_user.events.joins(:ip,:signature).order(sort_column + " " + sort_direction).all.paginate(:page => params[:page], :per_page => User.current_user.per_page_count)
+    @events ||= @current_user.events.joins(:ip,:signature).order(sort_column + " " + sort_direction).all.paginate(:page => params[:page], :per_page => User.current_user.per_page_count)
     @classifications ||= Classification.all
   end
 
@@ -42,7 +42,7 @@ class EventsController < ApplicationController
   end
 
   def create_email
-    @event = Event.get(params[:sid], params[:cid])
+    @event = Event.find(params[:sid], params[:cid])
     render :layout => false
   end
 
@@ -55,7 +55,7 @@ class EventsController < ApplicationController
   end
 
   def create_mass_action
-    @event = Event.get(params[:sid], params[:cid])
+    @event = Event.find(params[:sid], params[:cid])
     render :layout => false
   end
 
@@ -128,7 +128,7 @@ class EventsController < ApplicationController
   end
 
   def favorite
-    @event = Event.get(params[:sid], params[:cid])
+    @event = Event.find(params[:sid], params[:cid])
     @event.toggle_favorite
     render :json => {}
   end
@@ -143,7 +143,7 @@ class EventsController < ApplicationController
   end
 
   def activity
-    @user = User.get(params[:user_id])
+    @user = User.find(params[:user_id])
     @events = @user.events.page(params[:page].to_i, :per_page => @current_user.per_page_count, :order => [:timestamp.desc])
     @classifications ||= Classification.all
   end
@@ -157,7 +157,7 @@ class EventsController < ApplicationController
   end
 
   def packet_capture
-    @event = Event.get(params[:sid], params[:cid])
+    @event = Event.find(params[:sid], params[:cid])
     render :layout => false
   end
 

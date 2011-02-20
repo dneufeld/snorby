@@ -455,35 +455,39 @@ var Snorby = {
 			});
 			
 			$('div.create-favorite.enabled').live('click', function() {
+				var self = $(this);
 				var sid = $(this).parents('li.event').attr('data-event-sid');
 				var cid = $(this).parents('li.event').attr('data-event-cid');
 				
-				$(this).removeClass('create-favorite').addClass('destroy-favorite');
-				$.post('/events/favorite', { sid: sid, cid: cid });
-				
-				var count = new Queue();
-				count.up();
+				$.post('/events/favorite', { sid: sid, cid: cid }, function() {
+					self.removeClass('create-favorite').addClass('destroy-favorite');
+					var count = new Queue();
+					count.up();
+				});
 				
 				return false;
 			});
 			
 			$('div.destroy-favorite.enabled').live('click', function() {
+				var self = $(this);
 				var sid = $(this).parents('li.event').attr('data-event-sid');
 				var cid = $(this).parents('li.event').attr('data-event-cid');
 				var action = $('div#events').attr('data-action');
 				
-				$(this).removeClass('destroy-favorite').addClass('create-favorite');
-				$.post('/events/favorite', { sid: sid, cid: cid });
-				
-				var count = new Queue();
-				count.down();
-				
-				if (action == 'queue') { 
-					$('div.content').fadeTo(500, 0.4);
-					Snorby.helpers.remove_click_events(true);
-					$('div.destroy-favorite').removeClass('enabled').css('cursor', 'default');
-					$.get('/events/queue', null, null, "script");
-				};
+				$.post('/events/favorite', { sid: sid, cid: cid }, function() {
+					
+					self.removeClass('destroy-favorite').addClass('create-favorite');
+					
+					if (action == 'queue') { 
+						$('div.content').fadeTo(500, 0.4);
+						Snorby.helpers.remove_click_events(true);
+						$('div.destroy-favorite').removeClass('enabled').css('cursor', 'default');
+						$.get('/events/queue', null, null, "script");
+					};
+					
+					var count = new Queue();
+					count.down();
+				});
 					
 				return false;
 			});

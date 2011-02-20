@@ -95,7 +95,7 @@ ActiveRecord::Schema.define(:version => 20110219213703) do
   create_table "event", :id => false, :force => true do |t|
     t.integer  "sid",                              :null => false
     t.integer  "cid",                              :null => false
-    t.integer  "sig_id"
+    t.integer  "signature"
     t.integer  "classification_id"
     t.integer  "users_count",       :default => 0
     t.integer  "user_id"
@@ -107,14 +107,14 @@ ActiveRecord::Schema.define(:version => 20110219213703) do
   add_index "event", ["classification_id"], :name => "index_event_classification_id"
   add_index "event", ["notes_count"], :name => "index_event_notes_count"
   add_index "event", ["sid"], :name => "index_event_sid"
-  add_index "event", ["sig_id"], :name => "index_event_sig_id"
+  add_index "event", ["signature"], :name => "index_event_signature"
   add_index "event", ["user_id"], :name => "index_event_user_id"
   add_index "event", ["users_count"], :name => "index_event_users_count"
 
   create_table "favorites", :force => true do |t|
-    t.integer "sid"
-    t.integer "cid"
-    t.integer "user_id"
+    t.integer "sid",     :null => false
+    t.integer "cid",     :null => false
+    t.integer "user_id", :null => false
   end
 
   add_index "favorites", ["cid"], :name => "index_favorites_cid"
@@ -136,20 +136,20 @@ ActiveRecord::Schema.define(:version => 20110219213703) do
   add_index "icmphdr", ["sid"], :name => "index_icmphdr_sid"
 
   create_table "iphdr", :id => false, :force => true do |t|
-    t.integer "sid",                                     :null => false
-    t.integer "cid",                                     :null => false
-    t.string  "ip_src",   :limit => 50, :default => "0", :null => false
-    t.string  "ip_dst",   :limit => 50, :default => "0", :null => false
-    t.integer "ip_ver",                 :default => 0,   :null => false
-    t.integer "ip_hlen",                :default => 0,   :null => false
-    t.integer "ip_tos",                 :default => 0,   :null => false
-    t.integer "ip_len",                 :default => 0,   :null => false
-    t.integer "ip_id",                  :default => 0,   :null => false
-    t.integer "ip_flags",               :default => 0,   :null => false
-    t.integer "ip_off",                 :default => 0,   :null => false
-    t.integer "ip_ttl",                 :default => 0,   :null => false
-    t.integer "ip_proto",               :default => 0,   :null => false
-    t.integer "ip_csum",                :default => 0,   :null => false
+    t.integer "sid",                     :null => false
+    t.integer "cid",                     :null => false
+    t.integer "ip_src",                  :null => false
+    t.integer "ip_dst",                  :null => false
+    t.integer "ip_ver",   :default => 0, :null => false
+    t.integer "ip_hlen",  :default => 0, :null => false
+    t.integer "ip_tos",   :default => 0, :null => false
+    t.integer "ip_len",   :default => 0, :null => false
+    t.integer "ip_id",    :default => 0, :null => false
+    t.integer "ip_flags", :default => 0, :null => false
+    t.integer "ip_off",   :default => 0, :null => false
+    t.integer "ip_ttl",   :default => 0, :null => false
+    t.integer "ip_proto", :default => 0, :null => false
+    t.integer "ip_csum",  :default => 0, :null => false
   end
 
   add_index "iphdr", ["cid"], :name => "index_iphdr_cid"
