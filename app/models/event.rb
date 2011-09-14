@@ -1,3 +1,4 @@
+require 'netaddr'
 require 'snorby/model/counter'
 
 class Event
@@ -7,6 +8,8 @@ class Event
 
   # Included for the truncate helper method.
   extend ActionView::Helpers::TextHelper
+
+  SIGNATURE_URL = "http://rootedyour.com/snortsid?sid=$$gid$$-$$sid$$"
 
   storage_names[:default] = "event"
 
@@ -28,27 +31,35 @@ class Event
 
   property :timestamp, DateTime
 
-  has n, :favorites, :parent_key => [ :sid, :cid ], :child_key => [ :sid, :cid ], :constraint => :destroy
+  has n, :favorites, :parent_key => [ :sid, :cid ], 
+    :child_key => [ :sid, :cid ], :constraint => :destroy
 
   has n, :users, :through => :favorites
 
   has 1, :severity, :through => :signature, :via => :sig_priority
 
-  has 1, :payload, :parent_key => [ :sid, :cid ], :child_key => [ :sid, :cid ], :constraint => :destroy
+  has 1, :payload, :parent_key => [ :sid, :cid ], 
+    :child_key => [ :sid, :cid ], :constraint => :destroy
 
-  has 1, :icmp, :parent_key => [ :sid, :cid ], :child_key => [ :sid, :cid ], :constraint => :destroy
+  has 1, :icmp, :parent_key => [ :sid, :cid ], 
+    :child_key => [ :sid, :cid ], :constraint => :destroy
 
-  has 1, :tcp, :parent_key => [ :sid, :cid ], :child_key => [ :sid, :cid ], :constraint => :destroy
+  has 1, :tcp, :parent_key => [ :sid, :cid ], 
+    :child_key => [ :sid, :cid ], :constraint => :destroy
 
-  has 1, :udp, :parent_key => [ :sid, :cid ], :child_key => [ :sid, :cid ], :constraint => :destroy
+  has 1, :udp, :parent_key => [ :sid, :cid ], 
+    :child_key => [ :sid, :cid ], :constraint => :destroy
 
-  has 1, :opt, :parent_key => [ :sid, :cid ], :child_key => [ :sid, :cid ], :constraint => :destroy
+  has 1, :opt, :parent_key => [ :sid, :cid ], 
+    :child_key => [ :sid, :cid ], :constraint => :destroy
 
-  has n, :notes, :parent_key => [ :sid, :cid ], :child_key => [ :sid, :cid ], :constraint => :destroy
+  has n, :notes, :parent_key => [ :sid, :cid ], 
+    :child_key => [ :sid, :cid ], :constraint => :destroy
 
   belongs_to :user
 
-  belongs_to :sensor, :parent_key => :sid, :child_key => :sid, :required => true
+  belongs_to :sensor, :parent_key => :sid, 
+    :child_key => :sid, :required => true
 
   belongs_to :signature, :child_key => :sig_id, :parent_key => :sig_id
 
@@ -58,6 +69,55 @@ class Event
     self.classification.down(:events_count) if self.classification
     self.signature.down(:events_count) if self.signature
     # Note: Need to decrement Severity, Sensor and User Counts
+  end
+
+   SORT = { 
+    :sig_priority => 'signature',
+    :sid => 'event',
+    :ip_src => 'ip',
+    :ip_dst => 'ip',
+    :sig_name => 'signature',
+    :timestamp => 'event',
+    :user_count => 'event'
+  }
+
+  def self.sorty(params={})
+    sort = params[:sort]
+    direction = params[:direction]
+
+    page = {
+      :per_page => User.current_user.per_page_count
+    }
+
+    if SORT[sort].downcase == 'event'
+      page.merge!(:order => sort.send(direction))
+    else
+      page.merge!(
+        :order => [Event.send(SORT[sort].to_sym).send(sort).send(direction), 
+                   :timestamp.send(direction)],
+        :links => [Event.relationships[SORT[sort].to_s].inverse]
+      )
+    end
+    
+    if params.has_key?(:search)
+      page.merge!(search(params[:search]))
+    end
+
+    unless params.has_key?(:classification_all)
+      page.merge!(:classification_id => nil)
+    end
+
+    if params.has_key?(:user_events)
+      relationship = Event.relationships['user'].inverse
+
+      if page.has_key?(:links)
+        page[:links].push(relationship)
+      else
+        page[:links] = [relationship]
+      end
+    end
+
+    page(params[:page].to_i, page)
   end
 
   def packet_capture(params={})
@@ -72,13 +132,15 @@ class Event
   end
 
   def signature_url
-    if Setting.signature_lookup?
-      url = Setting.find(:signature_lookup)
-      return url.sub(/\$\$sid\$\$/, signature.sig_sid.to_s).sub(/\$\$gid\$\$/, signature.sig_gid.to_s)
+    sid, gid = [/\$\$sid\$\$/, /\$\$gid\$\$/]
+
+    @signature_url = if Setting.signature_lookup?
+      Setting.find(:signature_lookup) 
     else
-      url = "http://rootedyour.com/snortsid?sid=$$gid$$-$$sid$$"
-      return url.sub(/\$\$sid\$\$/, signature.sig_sid.to_s).sub(/\$\$gid\$\$/, signature.sig_gid.to_s)
+      SIGNATURE_URL
     end
+
+    @signature_url.sub(sid, signature.sig_sid.to_s).sub(gid, signature.sig_gid.to_s)
   end
 
   def matches_notification?
@@ -106,19 +168,23 @@ class Event
   end
 
   def self.last_month
-    all(:timestamp.gte => 2.month.ago.beginning_of_month, :timestamp.lte => 1.month.ago.end_of_month)
+    all(:timestamp.gte => 2.month.ago.beginning_of_month, 
+        :timestamp.lte => 1.month.ago.end_of_month)
   end
 
   def self.last_week
-    all(:timestamp.gte => 2.week.ago.beginning_of_week, :timestamp.lte => 1.week.ago.end_of_week)
+    all(:timestamp.gte => 2.week.ago.beginning_of_week, 
+        :timestamp.lte => 1.week.ago.end_of_week)
   end
 
   def self.yesterday
-    all(:timestamp.gte => 1.day.ago.beginning_of_day, :timestamp.lte => 1.day.ago.end_of_day)
+    all(:timestamp.gte => 1.day.ago.beginning_of_day, 
+        :timestamp.lte => 1.day.ago.end_of_day)
   end
 
   def self.today
-    all(:timestamp.gte => Time.now.beginning_of_day, :timestamp.lte => Time.now.end_of_day)
+    all(:timestamp.gte => Time.now.beginning_of_day, 
+        :timestamp.lte => Time.now.end_of_day)
   end
 
   def self.find_classification(classification_id)
@@ -134,11 +200,13 @@ class Event
   end
 
   def self.between(start_time, end_time)
-    all(:timestamp.gte => start_time, :timestamp.lte => end_time, :order => [:timestamp.desc])
+    all(:timestamp.gte => start_time, :timestamp.lte => end_time, 
+        :order => [:timestamp.desc])
   end
 
   def self.between_time(start_time, end_time)
-    all(:timestamp.gte => start_time, :timestamp.lt => end_time, :order => [:timestamp.desc])
+    all(:timestamp.gte => start_time, :timestamp.lt => end_time, 
+        :order => [:timestamp.desc])
   end
 
   def self.find_by_ids(ids)
@@ -201,7 +269,7 @@ class Event
     return true if User.current_user.events.include?(self)
     false
   end
-
+  
   def toggle_favorite
     if self.favorite?
       destroy_favorite
@@ -211,13 +279,12 @@ class Event
   end
 
   def create_favorite
-    users << User.current_user
-    users.save
+    favorite = Favorite.create(:sid => self.sid, :cid => self.cid, :user => User.current_user)
   end
 
   def destroy_favorite
-    favorite = Favorite.first(:sid => self.sid, :cid => self.cid, :user => User.current_user)
-    favorite.destroy if favorite
+    favorite = User.current_user.favorites.first(:sid => self.sid, :cid => self.cid)
+    favorite.destroy! if favorite
   end
 
   def protocol
@@ -245,14 +312,28 @@ class Event
   end
   
   def source_port
+    return nil unless protocol_data
+
     if protocol_data.first == :icmp
       nil
     else
       protocol_data.last.send(:"#{protocol_data.first}_sport")
     end
   end
-  
+ 
+  def rule
+    @rule = Snorby::Rule.get({
+      :rule_id => signature.sig_sid,
+      :generator_id => signature.sig_gid,
+      :revision_id => signature.sig_rev
+    })
+
+    @rule if @rule.found?
+  end
+
   def destination_port
+    return nil unless protocol_data
+
     if protocol_data.first == :icmp
       nil
     else
@@ -261,7 +342,7 @@ class Event
   end
   
   def in_xml
-    %{<snorby>#{to_xml}#{user.to_xml if user}#{ip.to_xml}#{protocol_data.last.to_xml if protocol_data}#{classification.to_xml if classification}#{payload.to_xml if payload}#{notes.to_xml}</snorby>}
+    %{<snorby>#{to_xml}#{user.to_xml if user}#{ip.to_xml}#{protocol_data.last.to_xml if protocol_data}#{classification.to_xml if classification}#{payload.to_xml if payload}</snorby>}.chomp
   end
 
   def in_json
@@ -276,8 +357,8 @@ class Event
       :dst_port => dst_port,
       :type => type,
       :proto => proto,
-      :payload => payload.to_ascii,
-      :payload_html => payload.to_html
+      :payload => payload,
+      :payload_html => payload ? payload.to_html : ''
     }
     return json
   end
@@ -326,8 +407,10 @@ class Event
       return 0
     elsif tcp?
       return tcp.tcp_sport
-    else
+    elsif udp?
       return udp.udp_sport
+    else
+      return nil
     end
   end
 
@@ -342,37 +425,30 @@ class Event
       return 0
     elsif tcp?
       return tcp.tcp_dport
-    else
+    elsif udp?
       return udp.udp_dport
+    else
+      return nil
     end
   end
 
-  def self.reset_classifications
-    all.update(:classification_id => 0)
-    Classification.all.each do |classification|
-      classification.update(:events_count => 0)
-    end
-  end
-  
-  def self.classify_from_collection(collection, classification, user, reclassify=false)
+  def self.classify_from_collection(events, classification, user, reclassify=false)
     @classification = Classification.get(classification)
-    @user ||= User.get(user)
+    @user = User.get(user)
 
-    collection.each do |event|
-      next unless event
-      old_classification = event.classification || false
-      
-      next if old_classification == @classification
-      
-      next if (old_classification && reclassify == false)
-      
-      event.user = @user
+    events.each do |event|
 
-      if @classification.blank?
-        event.classification = nil
+      old_classification = if event.classification.present?
+        event.classification
       else
-        event.classification = @classification
+        nil
       end
+
+      next if old_classification == @classification
+      next if old_classification && reclassify == false
+
+      event.classification = @classification
+      event.user_id = @user.id
 
       if event.save
         @classification.up(:events_count) if @classification
@@ -380,59 +456,100 @@ class Event
       else
         Rails.logger.info "ERROR: #{event.errors.inspect}"
       end
-      
+
     end
+  rescue => e
+    Rails.logger.info(e.backtrace)        
   end
 
   def self.search(params)
     @search = {}
-    begin
-      unless params[:timestamp].to_i.zero?
-        if params[:timestamp] =~ /\s\-\s/
-          start_time, end_time = params[:timestamp].split(' - ')
-          @search.merge!({:conditions => ['timestamp >= ? AND timestamp <= ?', Chronic.parse(start_time).beginning_of_day, Chronic.parse(end_time).end_of_day]})
-        else
-          @search.merge!({:timestamp.gte => Chronic.parse(params[:timestamp]).beginning_of_day})
-        end
-      end
 
-      @search.merge!({ Event.sid => params[:sid] }) if params[:sid] unless params[:sid].to_i.zero?
+    @search.merge!({:sid => params[:sid].to_i}) unless params[:sid].blank?
 
-      if params[:severity].to_i.zero?
-        @search.merge!({ :"sig_id" => Signature.all(:sig_name.like => "%#{params[:signature_name]}%").map(&:sig_id) }) unless params[:signature_name] == ""
-      else
-        if params[:signature_name] == ""
-          @search.merge!({ :"sig_id" => Signature.all(:sig_priority => params[:severity].to_i).map(&:sig_id) })
-        else
-          @search.merge!({ :"sig_id" => Signature.all(:sig_name.like => "%#{params[:signature_name]}%", :sig_priority => params[:severity].to_i).map(&:sig_id) })
-        end
-      end
-
-      @search.merge!({ :classification_id => params[:classification_id] }) unless params[:classification_id].to_i.zero?
-
-      @search.merge!({ :"ip.ip_src" => IPAddr.new("#{params[:ip_src]}") }) unless (params[:ip_src] == "") || !params.has_key?(:ip_src)
-
-      @search.merge!({ :"ip.ip_dst" => IPAddr.new("#{params[:ip_dst]}") }) unless (params[:ip_dst] == "") || !params.has_key?(:ip_dst)
-
-      @search.merge!({ :notes_count.gt => params[:notes_count] }) if params.has_key?(:notes_count)
-
-      @search.merge!({ :users_count.gt => params[:users_count] }) if params.has_key?(:users_count)
-
-      # Debug
-      # puts @search.to_yaml
-
-      return all(@search) if params[:src_port].to_i.zero? && params[:dst_port].to_i.zero?
-
-      if params[:dst_port].to_i.zero?
-        return all(@search) && all(:"tcp.tcp_sport" => params[:src_port].to_i) | all(:"udp.udp_sport" => params[:src_port].to_i)
-      elsif params[:src_port].to_i.zero?
-        return all(@search) && all(:"tcp.tcp_dport" => params[:dst_port].to_i) | all(:"udp.udp_dport" => params[:dst_port].to_i)
-      else
-        return all(@search) && (all(:"tcp.tcp_sport" => params[:src_port].to_i) | all(:"udp.udp_sport" => params[:src_port].to_i) & all(:"tcp.tcp_dport" => params[:dst_port].to_i) | all(:"udp.udp_dport" => params[:dst_port].to_i))
-      end
-    rescue
-      all(@search)
+    unless params[:classification_id].blank?
+      @search.merge!({:classification_id => params[:classification_id].to_i})
     end
+
+    unless params[:signature_name].blank?
+      @search.merge!({
+        :"signature.sig_name".like => "%#{params[:signature_name]}%"
+      })  
+    end
+    
+    unless params[:src_port].blank?
+      @search.merge!({:"tcp.tcp_sport" => params[:src_port].to_i})
+    end
+     
+    unless params[:dst_port].blank?
+      @search.merge!({:"tcp.tcp_dport" => params[:dst_port].to_i})
+    end
+
+    ### IPAddr
+    unless params[:ip_src].blank?
+      if params[:ip_src].match(/\d+\/\d+/)
+        range = NetAddr::CIDR.create("#{params[:ip_src]}")
+        @search.merge!({
+          :"ip.ip_src".gte => IPAddr.new(range.first),
+          :"ip.ip_src".lte => IPAddr.new(range.last),
+        })
+      else
+        @search.merge!({:"ip.ip_src".like => IPAddr.new("#{params[:ip_src]}")})
+      end 
+    end
+
+    unless params[:ip_dst].blank?
+      if params[:ip_dst].match(/\d+\/\d+/)
+        range = NetAddr::CIDR.create("#{params[:ip_dst]}")
+        @search.merge!({
+          :"ip.ip_dst".gte => IPAddr.new(range.first),
+          :"ip.ip_dst".lte => IPAddr.new(range.last),
+        })
+      else
+        @search.merge!({:"ip.ip_dst".like => IPAddr.new("#{params[:ip_dst]}")})
+      end
+    end
+
+    unless params[:severity].blank?
+      @search.merge!({:"signature.sig_priority" => params[:severity].to_i})
+    end
+
+    # Timestamp
+    if params[:timestamp].blank?
+
+      unless params[:time_start].blank? || params[:time_end].blank?
+        @search.merge!({
+          :conditions => ['timestamp >= ? AND timestamp <= ?',
+            Time.at(params[:time_start].to_i),
+            Time.at(params[:time_end].to_i)
+        ]})
+      end
+
+    else
+
+      if params[:timestamp] =~ /\s\-\s/
+        start_time, end_time = params[:timestamp].split(' - ')
+        @search.merge!({:conditions => ['timestamp >= ? AND timestamp <= ?', 
+                       Chronic.parse(start_time).beginning_of_day, 
+                       Chronic.parse(end_time).end_of_day]})
+      else
+        @search.merge!({:conditions => ['timestamp >= ? AND timestamp <= ?', 
+                       Chronic.parse(params[:timestamp]).beginning_of_day, 
+                       Chronic.parse(params[:timestamp]).end_of_day]})
+      end
+
+    end
+
+    unless params[:severity].blank?
+      @search.merge!({:"signature.sig_priority" => params[:severity].to_i})
+    end
+  
+    @search
+
+  rescue NetAddr::ValidationError => e
+    {}
+  rescue ArgumentError => e
+    {}
   end
 
 end

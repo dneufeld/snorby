@@ -26,8 +26,8 @@ class RegistrationsController < Devise::RegistrationsController
   end
 
   def update
-
-    if resource.update_with_password(params[resource_name])
+    method = (Snorby::CONFIG[:authentication_mode] == "database") ? "update_with_password" :  "update"
+    if resource.send(method, params[resource_name])
       
       if params[:user][:avatar].blank?
         
@@ -40,7 +40,7 @@ class RegistrationsController < Devise::RegistrationsController
       end
     else
       clean_up_passwords(resource)
-      render_with_scope :edit
+      redirect_to edit_user_registration_path
     end
   end
 

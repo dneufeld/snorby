@@ -1,7 +1,11 @@
 class PageController < ApplicationController
 
+  helper_method :sort_column, :sort_direction, :sort_page
+
   def dashboard
-    @range = params[:range].blank? ? 'today' : params[:range]
+    @now = Time.now
+
+    @range = params[:range].blank? ? 'last_24' : params[:range]
 
     set_defaults
 
@@ -15,14 +19,17 @@ class PageController < ApplicationController
     @high = @cache.severity_count(:high, @range.to_sym)
     @medium = @cache.severity_count(:medium, @range.to_sym)
     @low = @cache.severity_count(:low, @range.to_sym)
-
+    
     @sensor_metrics = @cache.sensor_metrics(@range.to_sym)
 
     @signature_metrics = @cache.signature_metrics
 
     @event_count = @cache.all.map(&:event_count).sum
 
-    @axis = @sensor_metrics.last[:range].join(',') if @sensor_metrics.last
+     
+    if @sensor_metrics.last
+      @axis = @sensor_metrics.last[:range].join(',')
+    end
 
     @classifications = Classification.all(:order => [:events_count.desc])
     @sensors = Sensor.all(:limit => 5, :order => [:events_count.desc])
@@ -40,76 +47,93 @@ class PageController < ApplicationController
         render :pdf => "Snorby Report - #{@start_time.strftime('%A-%B-%d-%Y-%I-%M-%p')} - #{@end_time.strftime('%A-%B-%d-%Y-%I-%M-%p')}", :template => "page/dashboard.pdf.erb", :layout => 'pdf.html.erb', :stylesheets => ["pdf"]
       end
     end
-    
+
   end
 
   def search
   end
 
-  def results
-    begin
-      limit = params[:limit].to_i.zero? ? @current_user.per_page_count : params[:limit].to_i
-      @events = Event.search(params[:search]).page(params[:page].to_i, :per_page => limit, :order => [:timestamp.desc])
-      @classifications ||= Classification.all
-    rescue ArgumentError
-      redirect_to :back, :notice => 'Please double check you search parameters and make sure they are valid.'
-    end
+  def results    
+    params[:sort] = sort_column
+    params[:direction] = sort_direction
+    params[:classification_all] = true
+
+    @events = Event.sorty(params)
+    @classifications ||= Classification.all
   end
 
   private
 
-    def set_defaults
+  def set_defaults
 
-      case @range.to_sym
-      when :now
-        @cache = Cache.today
-        @start_time = Time.now.beginning_of_day
-        @end_time = Time.now
-      when :today
-        @cache = Cache.today
-        @start_time = Time.now.beginning_of_day
-        @end_time = Time.now.end_of_day
+    case @range.to_sym
+    when :last_24
+      
+      @start_time = @now.yesterday
+      @end_time = @now
+      
+      @cache = Cache.last_24(@start_time, @end_time)
 
-      when :yesterday
-        @cache = Cache.yesterday
-        @start_time = (Time.now - 1.day).beginning_of_day
-        @end_time = (Time.now - 1.day).end_of_day
+    when :today
+      @cache = Cache.today
+      @start_time = @now.beginning_of_day
+      @end_time = @now.end_of_day
 
-      when :week
-        @cache = DailyCache.this_week
-        @start_time = Time.now.beginning_of_week
-        @end_time = Time.now.end_of_week
+    when :yesterday
+      @cache = Cache.yesterday
+      @start_time = (@now - 1.day).beginning_of_day
+      @end_time = (@now - 1.day).end_of_day
 
-      when :last_week
-        @cache = DailyCache.last_week
-        @start_time = (Time.now - 1.week).beginning_of_week
-        @end_time = (Time.now - 1.week).end_of_week
+    when :week
+      @cache = DailyCache.this_week
+      @start_time = @now.beginning_of_week
+      @end_time = @now.end_of_week
 
-      when :month
-        @cache = DailyCache.this_month
-        @start_time = Time.now.beginning_of_month
-        @end_time = Time.now.end_of_month
+    when :last_week
+      @cache = DailyCache.last_week
+      @start_time = (@now - 1.week).beginning_of_week
+      @end_time = (@now - 1.week).end_of_week
 
-      when :last_month
-        @cache = DailyCache.last_month
-        @start_time = (Time.now - 2.months).beginning_of_month
-        @end_time = (Time.now - 2.months).end_of_month
+    when :month
+      @cache = DailyCache.this_month
+      @start_time = @now.beginning_of_month
+      @end_time = @now.end_of_month
 
-      when :quarter
-        @cache = DailyCache.this_quarter
-        @start_time = Time.now.beginning_of_quarter
-        @end_time = Time.now.end_of_quarter
+    when :last_month
+      @cache = DailyCache.last_month
+      @start_time = (@now - 1.months).beginning_of_month
+      @end_time = (@now - 1.months).end_of_month
 
-      when :year
-        @cache = DailyCache.this_year
-        @start_time = Time.now.beginning_of_year
-        @end_time = Time.now.end_of_year
+    when :quarter
+      @cache = DailyCache.this_quarter
+      @start_time = @now.beginning_of_quarter
+      @end_time = @now.end_of_quarter
 
-      else
-        @cache = Cache.today
-        @start_time = Time.now.beginning_of_day
-        @end_time = Time.now.end_of_day
-      end
+    when :year
+      @cache = DailyCache.this_year
+      @start_time = @now.beginning_of_year
+      @end_time = @now.end_of_year
+
+    else
+      @cache = Cache.today
+      @start_time = @now.beginning_of_day
+      @end_time = @now.end_of_day
     end
+
+  end
+
+  def sort_column
+    return :timestamp unless params.has_key?(:sort)
+    return params[:sort].to_sym if Event::SORT.has_key?(params[:sort].to_sym)
+    :timestamp
+  end
+  
+  def sort_direction
+    %w[asc desc].include?(params[:direction].to_s) ? params[:direction].to_sym : :desc
+  end
+
+  def sort_page
+    params[:page].to_i
+  end
 
 end

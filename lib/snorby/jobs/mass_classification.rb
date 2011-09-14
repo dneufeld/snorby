@@ -18,11 +18,17 @@
 
 module Snorby
   module Jobs
-    class MassClassification < Struct.new(:classification_id, :options, :user_id, :reclassify)
+    class MassClassification < Struct.new(:classification_id, 
+                                          :options, :user_id, :reclassify)
+
+      include Snorby::Jobs::CacheHelper
 
       def perform
         events = Event.all(options)
-        Event.classify_from_collection(events, classification_id, user_id, reclassify)
+        events.each_chunk(BATCH_SIZE.to_i) do |chunk|
+          Event.classify_from_collection(chunk, classification_id, user_id,
+          reclassify)
+        end
       end
 
     end

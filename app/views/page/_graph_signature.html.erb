@@ -13,6 +13,9 @@
 		         renderTo: 'signature-graph',
 		         margin: [50, 165, 50, 160]
 		      },
+          credits: {
+            enabled: false
+          },
 		      title: {
 		         text: ''
 		      },
@@ -23,6 +26,14 @@
 		      },
 		      plotOptions: {
 		         pie: {
+              events: {
+                click: function(event) {
+                  HCloader(event.toElement.offsetParent.id);
+                  document.location = '/results?search[signature_name]=' + 
+                    event.point.name + '&search[time_start]=<%= @start_time.to_i %>' +
+                    '&search[time_end]=<%= @end_time.to_i %>';
+                }
+              },
 		            allowPointSelect: true,
 		            cursor: 'pointer',
 								dataLabels: {

@@ -50,8 +50,13 @@ module Snorby
 
       @last_cache = @cache.get_last ? @cache.get_last.ran_at : Time.now
 
-      sigs = Event.all(:limit => 5, :order => [:timestamp.desc], :fields => [:sig_id], :unique => true).map(&:signature).map(&:sig_id)
-      @recent_events = Event.all(:sig_id => sigs).group_by { |x| x.sig_id }.map(&:last).map(&:first)
+      sigs = Event.all(:limit => 5, :order => [:timestamp.desc], 
+                       :fields => [:sig_id], 
+                       :unique => true).map(&:signature).map(&:sig_id)
+
+      @recent_events = Event.all(:sig_id => sigs).group_by do |x| 
+        x.sig_id 
+      end.map(&:last).map(&:first)
       
 
       av = ActionView::Base.new(Rails.root.join('app', 'views'))
@@ -74,7 +79,9 @@ module Snorby
         :last_cache => @last_cache
       })
 
-      pdf = PDFKit.new(av.render(:template => "page/dashboard.pdf.erb", :layout => 'layouts/pdf.html.erb'))
+      pdf = PDFKit.new(av.render(:template => "page/dashboard.pdf.erb", 
+                                 :layout => 'layouts/pdf.html.erb'))
+
       pdf.stylesheets << Rails.root.join("public/stylesheets/pdf.css")
       
       data = {
@@ -86,59 +93,62 @@ module Snorby
       return data
     end
 
-    private
+    def self.set_defaults
 
-      def self.set_defaults
+      case @range.to_sym
+      when :last_24
+        @cache = Cache.last_24
+        
+        @start_time = Time.now.yesterday
+        @end_time = Time.now
 
-        case @range.to_sym
-        when :today
-          @cache = Cache.today
-          @start_time = Time.now.beginning_of_day
-          @end_time = Time.now.end_of_day
+      when :today
+        @cache = Cache.today
+        @start_time = Time.now.beginning_of_day
+        @end_time = Time.now.end_of_day
 
-        when :yesterday
-          @cache = Cache.yesterday
-          @start_time = (Time.now - 1.day).beginning_of_day
-          @end_time = (Time.now - 1.day).end_of_day
+      when :yesterday
+        @cache = Cache.yesterday
+        @start_time = (Time.now - 1.day).beginning_of_day
+        @end_time = (Time.now - 1.day).end_of_day
 
-        when :week
-          @cache = DailyCache.this_week
-          @start_time = Time.yesterday.beginning_of_week
-          @end_time = Time.yesterday.end_of_week
+      when :week
+        @cache = DailyCache.this_week
+        @start_time = Time.now.beginning_of_week
+        @end_time = Time.now.end_of_week
 
-        when :last_week
-          @cache = DailyCache.last_week
-          @start_time = (Time.yesterday - 1.week).beginning_of_week
-          @end_time = (Time.yesterday - 1.week).end_of_week
+      when :last_week
+        @cache = DailyCache.last_week
+        @start_time = (Time.now - 1.week).beginning_of_week
+        @end_time = (Time.now - 1.week).end_of_week
 
-        when :month
-          @cache = DailyCache.this_month
-          @start_time = Time.yesterday.beginning_of_month
-          @end_time = Time.yesterday.end_of_month
+      when :month
+        @cache = DailyCache.this_month
+        @start_time = Time.now.beginning_of_month
+        @end_time = Time.now.end_of_month
 
-        when :last_month
-          @cache = DailyCache.last_month
-          @start_time = (Time.yesterday - 2.months).beginning_of_month
-          @end_time = (Time.yesterday - 2.months).end_of_month
+      when :last_month
+        @cache = DailyCache.last_month
+        @start_time = (Time.now - 1.months).beginning_of_month
+        @end_time = (Time.now - 1.months).end_of_month
 
-        when :quarter
-          @cache = DailyCache.this_quarter
-          @start_time = Time.yesterday.beginning_of_quarter
-          @end_time = Time.yesterday.end_of_quarter
+      when :quarter
+        @cache = DailyCache.this_quarter
+        @start_time = Time.now.beginning_of_quarter
+        @end_time = Time.now.end_of_quarter
 
-        when :year
-          @cache = DailyCache.this_year
-          @start_time = Time.yesterday.beginning_of_year
-          @end_time = Time.yesterday.end_of_year
+      when :year
+        @cache = DailyCache.this_year
+        @start_time = Time.now.beginning_of_year
+        @end_time = Time.now.end_of_year
 
-        else
-          @cache = Cache.today
-          @start_time = Time.now.beginning_of_day
-          @end_time = Time.now.end_of_day
-        end
-
+      else
+        @cache = Cache.today
+        @start_time = Time.now.beginning_of_day
+        @end_time = Time.now.end_of_day
       end
+
+    end
     
   end
-  
 end

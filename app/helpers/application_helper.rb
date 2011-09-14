@@ -37,21 +37,40 @@ module ApplicationHelper
   def title(header, title=nil, &block)
     show_title(title ? title : header)
     title_header = content_tag(:div, header, :id => 'title-header', :class => 'grid_6')
+    
     if block_given?
-      menu = content_tag(:ul, "<li>&nbsp;</li>#{capture(&block)}<li>&nbsp;</li>".html_safe, :id => 'title-menu')
-      menu_holder = content_tag(:ul, menu, :id => 'title-menu-holder', :class => 'grid_6')
+      data = capture(&block).gsub("\n|\t", '')
+      menu = content_tag(:ul, "<li>&nbsp;</li>#{capture(&block)}<li>&nbsp;</li>".html_safe, :id => 'title-menu') unless data.blank?
+      menu_holder = content_tag(:ul, menu, :id => 'title-menu-holder', :class => '')
       html = title_header + menu_holder
     else
       html = title_header
     end
+
     return content_tag(:div, html, :id => 'title')
   end
 
   def sortable(column, title = nil)
     title ||= column.titleize
-    css_class = column == sort_column ? "current #{sort_direction}" : nil
-    direction = column == sort_column && sort_direction == "asc" ? "desc" : "asc"
-    link_to title, {:sort => column, :direction => direction}, {:class => css_class}
+    css_class = column == sort_column ? "current #{sort_direction} add_tipsy" : 'add_tipsy'
+    direction = column == sort_column && sort_direction == :asc ? :desc : :asc
+    
+    link = {
+      :sort => column,
+      :direction => direction
+    }
+
+    if params.has_key?(:search)
+      link[:search] = params[:search]
+    end
+
+    if params.has_key?(:page)
+      link[:page] = params[:page].to_i
+    end
+
+    link_to title, link, {
+      :class => css_class, 
+      :title => "Sort `#{title}` #{direction}"}
   end
 
   #
@@ -74,9 +93,11 @@ module ApplicationHelper
 
   def drop_down_for(name, icon_path, id, &block)
     html = link_to "#{image_tag(icon_path, :size => '16x16')} #{name}".html_safe, '#', :class => 'has_dropdown right-more', :id => "#{id}"
+
     if block_given?
       html += content_tag(:dl, "#{capture(&block)}".html_safe, :id => "#{id}", :class => 'drop-down-menu', :style => 'display:none;')
     end
+
     "<li>#{html}</li>".html_safe
   end
 
@@ -97,7 +118,9 @@ module ApplicationHelper
   #
   def menu_item(name, path='#', image_path=nil, options={})
     image = image_path ? "#{image_tag(image_path)} " : ""
-    content_tag(:li, "#{link_to "#{image}#{name}".html_safe, path, options}".html_safe)
+    unless (name || path).blank?
+      content_tag(:li, "#{link_to "#{image}#{name}".html_safe, path, options}".html_safe)
+    end 
   end
 
   def snorby_box(title, normal_size=true, &block)
@@ -108,9 +131,14 @@ module ApplicationHelper
     else
       html += content_tag(:div, capture(&block), :id => 'box-content-small')
     end
-    
-    html += content_tag(:div, nil, :id => 'box-footer')
+
     content_tag(:div, html, :id => 'snorby-box', :class => 'snorby-box')
+  end
+  
+  def snorby_box_footer(&block)
+    html = ''
+    html = capture(&block) if block
+    content_tag(:div, html, :id => 'box-footer')
   end
 
   def form_actions(&block)
@@ -170,4 +198,40 @@ module ApplicationHelper
     end
   end
 
+
+  def clippy(text, bgcolor='#FFFFFF', id=0)
+    html = <<-EOF
+      <span style="display:none" id="clippy_#{id}" class="ip-copy">#{text}</span>
+      <span id="main_clippy_#{id}" class="add_tipsy clippy" 
+      original-title="copied!" title="copy to clipboard">
+        <object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" 
+                width="14" 
+                height="14" 
+                class="clippy" 
+                id="clippy">
+        <param name="movie" value="/flash/clippy.swf">
+        <param name="allowScriptAccess" value="always">
+        <param name="quality" value="high">
+        <param name="scale" value="noscale">
+        <param name="FlashVars" value="id=clippy_#{id}&amp;copied=&amp;copyto=">
+        <param name="bgcolor" value="#{bgcolor}">
+        <param name="wmode" value="opaque">
+        <embed src="/flash/clippy.swf" 
+               width="14" 
+               height="14" 
+               name="clippy" 
+               quality="high" 
+               allowscriptaccess="always" 
+               type="application/x-shockwave-flash" 
+               pluginspage="http://www.macromedia.com/go/getflashplayer" 
+               flashvars="id=clippy_#{id}&amp;copied=&amp;copyto=" 
+               bgcolor="#{bgcolor}" 
+               wmode="opaque">
+        </object>
+      </span>
+    EOF
+
+    html.html_safe
+  end
+  
 end

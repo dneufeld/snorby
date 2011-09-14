@@ -54,12 +54,11 @@ module Snorby
 
                 day_start = @sensor.events.first.timestamp.beginning_of_day
                 day_end = @sensor.events.first.timestamp.end_of_day
-
+              
               else
-
+                
                 day_start = @sensor.daily_cache.last.ran_at.tomorrow.beginning_of_day
                 day_end = @sensor.daily_cache.last.ran_at.tomorrow.end_of_day
-
               end
 
               build_cache(day_start, day_end)
@@ -69,18 +68,31 @@ module Snorby
 
           begin
 
-            ReportMailer.daily_report.deliver if Setting.daily?
             send_weekly_report if Setting.weekly?
             send_monthly_report if Setting.monthly?
+            ReportMailer.daily_report.deliver if Setting.daily?
              
           rescue PDFKit::NoExecutableError => e
             logit "#{e}"
-          rescue
+          rescue => e
+            logit "#{e}", false
+            logit "#{e.backtrace.first}", false
             logit "Error: Unable to send report - please make sure your mail configurations are correct."
           end
 
+          # Autodrop Logic
+          if Setting.autodrop?
+            if Event.count > Setting.autodrop_count.value.to_i
+              autodrop = Event.all(:limit => Setting.autodrop_count.value.to_i, :order => :timestamp.asc)
+              autodrop.destroy
+            end
+          end
+
           Snorby::Jobs.daily_cache.destroy! if Snorby::Jobs.daily_cache?
-          Delayed::Job.enqueue(Snorby::Jobs::DailyCacheJob.new(false), :priority => 1, :run_at => Time.now.tomorrow.beginning_of_day)
+
+          Delayed::Job.enqueue(Snorby::Jobs::DailyCacheJob.new(false), 
+                               :priority => 1, 
+                               :run_at => Time.now.tomorrow.beginning_of_day)
 
         rescue Interrupt
           @cache.destroy! if defined?(@cache)
@@ -98,56 +110,69 @@ module Snorby
 
       def build_cache(day_start, day_end)
 
-        @events = Event.between(day_start, day_end).all(:sid => @sensor.sid)
-
+        all_events = Event.between(day_start, day_end).all(:sid => @sensor.sid)
+        
         @tcp_events = []
         @udp_events = []
         @icmp_events = []
 
-
         if day_end >= @stop_date
-          logit "No New Events To Cache..."
+          logit "Current - No New Events To Cache..."
           return
         end
 
-        if @events.blank?
-          logit "No New Events To Cache..."
-          return
+        if all_events.blank?
+          logit "Events Blank - No New Events To Cache..."
+
+          new_time = day_end + 1.day
         else
 
           logit "\nNew Day: #{day_start} - #{day_end}", false
+          logit "#{all_events.length} events found. Processing."
 
           @cache = DailyCache.create(:ran_at => day_start, :sensor => @sensor)
-          create_cache_record
+          records = []
+          batch = 0
 
-          new_time = @events.last.timestamp.end_of_day + 1.day
-          
-          new_start_day = new_time.beginning_of_day
-          
-          new_end_day = new_time.end_of_day
+          all_events.each_chunk(BATCH_SIZE.to_i) do |chunk|
+            @events = chunk
+            
+            logit "\nProcessing Batch #{batch += 1} of " + 
+            "#{(all_events.length / BATCH_SIZE) + 1}...", false
+            
+            build_sensor_event_count(false)
+            build_proto_counts
 
-          build_cache(new_start_day, new_end_day)
+            data = {
+              :event_count => fetch_event_count(true),
+              :tcp_count => fetch_tcp_count,
+              :udp_count => fetch_udp_count,
+              :icmp_count => fetch_icmp_count,
+              :severity_metrics => fetch_severity_metrics(false),
+              :src_ips => fetch_src_ip_metrics,
+              :dst_ips => fetch_dst_ip_metrics,
+              :signature_metrics => fetch_signature_metrics(false)
+            }
 
+            records << data
+          end
+
+          if records.length > 1
+            results = merged_records(records)
+            @cache.update(results)
+          else
+            @cache.update(records.first)
+          end
+         
+          new_time = all_events.last.timestamp.end_of_day + 1.day
         end
-      end
 
-      def create_cache_record
+        new_start_day = new_time.beginning_of_day
+          
+        new_end_day = new_time.end_of_day
 
-        build_sensor_event_count(false)
-        build_proto_counts
+        build_cache(new_start_day, new_end_day)
 
-        @cache.update({
-                        :event_count => fetch_event_count(true),
-                        :tcp_count => fetch_tcp_count,
-                        :udp_count => fetch_udp_count,
-                        :icmp_count => fetch_icmp_count,
-                        :severity_metrics => fetch_severity_metrics(false),
-                        :src_ips => fetch_src_ip_metrics,
-                        :dst_ips => fetch_dst_ip_metrics,
-                        :signature_metrics => fetch_signature_metrics(false)
-        })
-
-        @cache
       end
 
     end

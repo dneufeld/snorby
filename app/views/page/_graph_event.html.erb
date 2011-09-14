@@ -11,6 +11,9 @@
 							marginTop: 50,
 		         marginBottom: 50
 		      },
+          credits: {
+            enabled: false
+          },
 		      title: {
 		         text: 'Event Count vs Time By Sensor',
 		         x: -20 //center
@@ -25,6 +28,8 @@
 									text: 'Date of Month'
 								<% elsif (@range == 'week' || @range == 'last_week') %>
 									text: 'Date Of Week'
+                <% elsif @range == 'last_24' %>
+                  text: 'Last 24 Hours'
 								<% else %>
 									text: 'Hour of Day'
 								<% end %>

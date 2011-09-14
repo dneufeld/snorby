@@ -11,6 +11,9 @@
 							marginTop: 50,
 		         marginBottom: 50
 		      },
+          credits: {
+            enabled: false
+          },
 		      title: {
 		         text: 'Severity Count vs Time',
 		         x: -20 //center
@@ -25,6 +28,8 @@
 									text: 'Date of Month'
 								<% elsif (@range == 'week' || @range == 'last_week') %>
 									text: 'Date Of Week'
+                <% elsif @range == 'last_24' %>
+                  text: 'Last 24 Hours'
 								<% else %>
 									text: 'Hour of Day'
 								<% end %>
@@ -57,14 +62,17 @@
 						 backgroundColor: '#fff'
 		      },
 		      series: [{
-						name: 'High Severity',
-						data: <%= @high %>
+            name: 'High Severity',
+            color: sev1_bg_color,
+						data: [<%= @high.join(', ') %>]
 					},{
 						name: 'Medium Severity',
-						data: <%= @medium %>
+            color: sev2_bg_color,
+						data: [<%= @medium.join(', ') %>]
 					},{
-						name: 'Low Severity',
-						data: <%= @low %>
+            name: 'Low Severity',
+            color: sev3_bg_color,
+						data: [<%= @low.join(', ') %>]
 					}]
 		   });
 		
